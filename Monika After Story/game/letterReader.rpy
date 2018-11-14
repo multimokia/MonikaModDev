@@ -37,22 +37,22 @@ label monika_letter_reader:
     m 1eka "Awww, [player]!"
     m 1hua "That's so sweet of you!"
 
-    if renpy.store.mas_anni.isAnni():
+    if store.mas_anni.isAnniWeek():
         m "I know it's kind of silly to celebrate one week together, [player] but it means a lot that you'd write something for it."
-    
-    elif renpy.store.mas_anni.isAnniWeek():
+
+    elif store.mas_anni.isAnniOneMonth():
         m "Writing for one month together, I see [player]. I'm looking forward to reading your card."
 
-    elif renpy.store.mas_anni.isAnniOneMonth():
+    elif store.mas_anni.isAnniThreeMonth():
         m "Three months come and gone, it's really sweet that you'd write something for me, [player]."
 
-    elif renpy.store.mas_anni.isAnniThreeMonth():
+    elif store.mas_anni.isAnniSixMonth():
         m "I hope you're enjoying our time together as much as I am, [player]."
         m "These past six months have been amazing. I can't wait to read your card for today."        
-    
-    elif MASAnni.isAnniversary():
+
+    elif store.mas_anni.isAnni():
         m "It's so sweet that you'd make me an anniversary card, [player]."
-    
+
     else:
         m 1hub "I can't wait to read what you wrote!"
 
@@ -213,7 +213,7 @@ label monika_letter_reader:
             else:
                 #Not good. Can have more conditions based on the value of badCount possibly
                 m "Please give me some dialogue for this"
-            
+
 
             if (ilyCount == 0):
                 m "[romance_quip]"

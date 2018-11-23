@@ -65,8 +65,7 @@ label monika_letter_reader:
             "i love you",
             "truly love you",
             "you are amazing",
-            "you're amazing",
-            
+            "you're amazing"
         ]
 
         #Bad Phrases: (expand)
@@ -85,8 +84,7 @@ label monika_letter_reader:
             "I love you so much.",
             "Your love means more to me than anything else."
         ]
-        
-        path = renpy.config.basedir
+
         file_menu = []
         
         for val in mas_docking_station.getPackageList(".txt"):
@@ -110,7 +108,7 @@ label monika_letter_reader:
 
     python:
         renpy.say(m, "Which file would you like me to read?", interact=False)
-    call screen mas_gen_scrollable_menu(file_menu,evhand.UNSE_AREA, evhand.UNSE_XALIGN, return_prompt_back)
+    call screen mas_gen_scrollable_menu(file_menu,(evhand.UNSE_X, evhand.UNSE_Y, evhand.UNSE_W, 500), evhand.UNSE_XALIGN, return_prompt_back)
 
     $ madechoice = _return
 

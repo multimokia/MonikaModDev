@@ -1,6 +1,6 @@
 #TODOS:
 #imsorry.txt handling
-#Implement docking station for reading
+#Create a method for removing \n's
 
 #NOTE: Thanks John for helping w/ dialogue+exps
 

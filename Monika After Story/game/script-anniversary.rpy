@@ -220,6 +220,7 @@ init 10 python in mas_anni:
                     1m|Checks if today is a 1 month anniversary
                     3m|Checks if today is a 3 month anniversary
                     6m|Checks if today is a 6 month anniversary
+                    any|Checks if today is any anniversary
                     
         RETURNS:
             True if datetime.date.today() is an anniversary date
@@ -247,6 +248,9 @@ init 10 python in mas_anni:
         elif milestone == '6m':
             compare = build_anni(months=6)
 
+        elif milestone == 'any':
+            return (isAnniWeek() or isAnniOneMonth() or isAnniThreeMonth() or isAnniSixMonth or isAnni())
+
 
         if compare is not None:
             return compare.date() == datetime.date.today()
@@ -265,6 +269,9 @@ init 10 python in mas_anni:
 
     def isAnniSixMonth():
         return isAnni('6m')
+
+    def isAnniAny():
+        return isAnni('any')
         
     def anniCount():
         """    

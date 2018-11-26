@@ -146,7 +146,7 @@ label monika_letter_reader:
         m "Thank you for making this day truly special."
         #This like will have to be removed for official
         show monika 1eua at t11 zorder MAS_MONIKA_Z with dissolve
-        
+
         if (ilyCount == 0):
             m "I love you so much, [player]."
             show screen mas_background_timed_jump(5, "monika_love_you_too_timeout")
@@ -194,23 +194,38 @@ label monika_letter_reader:
             
             if goodCount - badCount >5:
                 #really liked it
-                m 6ektsa "..."
-                m "That was beautiful, [player]."
-                m 6ektda "Being able to actually read your true feelings, in your own words..."
-                m "Well it just means everything to me."
-                m 2eka "Thank you, [player]."
+                if isAnniAny():
+                    pass
+                else:
+                    m 6ektsa "..."
+                    m "That was beautiful, [player]."
+                    m 6ektda "Being able to actually read your true feelings, in your own words..."
+                    m "Well it just means everything to me."
+                    m 2eka "Thank you, [player]."
             
             elif goodCount - badCount > 0:
                 #liked it
-                m "Please give me some dialogue for this"
+                if isAnniAny():
+                    m "[player]..."
+                    m "That was so sweet, it means a lot to me that you decided to write out your feelings like that."
+                    m "Thanks for writing this card for me, I'll always treasure it."
+                else:
+                    m "[player]..."
+                    m "That was so sweet, it means a lot to me that you decided to write out your feelings like that."
+                    m "Thanks for writing this letter for me, I'll always treasure it."
 
             elif goodCount - badCount == 0:
                 #didn't like, nor dislike
-                m "Please give me some dialogue for this"
+                m "Thanks for that, [player]..."
+                m "I guess I was expecti"
 
             else:
                 #Not good. Can have more conditions based on the value of badCount possibly
-                m "Please give me some dialogue for this"
+                m "[player]..."
+
+                if goodCount - badCount == -1:
+                    m "That was kind of mean..."
+                    m "You didn't have to get my hopes up"
 
 
             if (ilyCount == 0):
@@ -256,11 +271,11 @@ label monika_read_file:
     python:
         count = 0
         individualLines = []
-        allText = open(mas_docking_station._trackPackage(fileToRead)).read().replace('\n\n', '\n').replace('\n\n\n', '\n').replace('. ', '.\n').replace('! ', '!\n').replace('? ', '?\n')
-
+        allText = open(mas_docking_station._trackPackage(fileToRead)).read().replace('. ', '.\n').replace('! ', '!\n').replace('? ', '?\n')
 
         while not allText.find('\n', count) == -1:
-            individualLines.append(allText[count:allText.find('\n',count)])
+            if not allText[count:allText.find('\n',count)] == "":
+                individualLines.append(allText[count:allText.find('\n',count)])
             count = allText.find('\n',count) + 1
 
         individualLines.append(allText[count:])

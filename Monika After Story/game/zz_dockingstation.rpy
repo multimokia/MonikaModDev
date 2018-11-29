@@ -297,7 +297,7 @@ init -45 python:
             ]
 
 
-        def getPackage(self, package_name):
+        def getPackage(self, package_name, open_type="rb"):
             """
             Gets a package from the docking station
 
@@ -305,7 +305,7 @@ init -45 python:
 
             IN:
                 package_name - The filename we are looking for
-
+                open_type - Method of opening the file. rb if not provided
             RETURNS:
                 open file descriptor to the package (READ BYTES mode)
                     if package is readable and no errors occurred
@@ -319,7 +319,7 @@ init -45 python:
             package_path = self._trackPackage(package_name)
             package = None
             try:
-                package = open(package_path, "rb")
+                package = open(package_path, open_type)
 
             except Exception as e:
                 mas_utils.writelog(self.ERR.format(

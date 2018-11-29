@@ -217,7 +217,7 @@ label monika_letter_reader:
             elif goodCount - badCount == 0:
                 #didn't like, nor dislike
                 m "Thanks for that, [player]..."
-                m "I guess I was expecti"
+                m "I guess I was expecting a little more"
 
             else:
                 #Not good. Can have more conditions based on the value of badCount possibly
@@ -269,18 +269,7 @@ label monika_letter_reader:
 label monika_read_file:
 
     python:
-        count = 0
-        individualLines = []
-        allText = open(mas_docking_station._trackPackage(fileToRead)).read().replace('. ', '.\n').replace('! ', '!\n').replace('? ', '?\n')
-
-        while not allText.find('\n', count) == -1:
-            if not allText[count:allText.find('\n',count)] == "":
-                individualLines.append(allText[count:allText.find('\n',count)])
-            count = allText.find('\n',count) + 1
-
-        individualLines.append(allText[count:])
-        count = 0
-
+        individualLines = mas_letterReader.getLetterContents(fileToRead)
         for s in individualLines:
             if not s.lower().find('i love you') == -1 or not s.lower().find('truly love you') == -1:
                 ilyCount += 1
@@ -299,7 +288,7 @@ label monika_read_file:
         import re
         goodPhrasesSearch = re.compile('|'.join(goodPhrases), re.IGNORECASE)
         badPhrasesSearch = re.compile('|'.join(badPhrases), re.IGNORECASE)
-        
+        count = 0
 
         
         while count <= len(individualLines)-1:
@@ -324,7 +313,6 @@ label monika_read_file:
                         renpy.show("monika 1eka")
                 #If nothing good/bad was said
                 else:
-
                     #Overall opinion is very good
                     if goodCount - badCount > 5:
 
@@ -381,3 +369,19 @@ label monika_read_file:
 
 label monika_love_you_too_timeout:
     return
+
+init -1 python in mas_letterReader:
+    import store
+    def getLetterContents(fileToRead):
+        count = 0
+        individualLines = []
+        #should probably change to:
+        allText = store.mas_docking_station.getPackage(fileToRead,'r').read().replace('. ', '.\n').replace('! ', '!\n').replace('? ', '?\n')
+
+        while not allText.find('\n', count) == -1:
+            if not allText[count:allText.find('\n',count)] == "":
+                individualLines.append(allText[count:allText.find('\n',count)])
+            count = allText.find('\n',count) + 1
+
+        individualLines.append(allText[count:])
+        return individualLines

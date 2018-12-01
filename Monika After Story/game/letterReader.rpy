@@ -1,12 +1,10 @@
 #TODOS:
 #imsorry.txt handling
 #Replace good/bad phrases w/ NLP bits
-
 #NOTE: Thanks John for helping w/ dialogue+exps
 
+#TODO: Replace this with a better system
 default birthdayDone = False
-
-#Dynamic Response Vars
 
 #Gotta make sure bday card isn't done twice, but have it reset for next time
 if not mas_isMonikaBirthday():
@@ -104,7 +102,7 @@ label monika_letter_reader:
         renpy.say(m, "Which file would you like me to read?", interact=False)
     call screen mas_gen_scrollable_menu(file_menu,(evhand.UNSE_X, evhand.UNSE_Y, evhand.UNSE_W, 500), evhand.UNSE_XALIGN, return_prompt_back)
 
-    $ madechoice = _return
+    $ fileToRead = _return
 
     if not _return:
         show monika at t11
@@ -113,7 +111,6 @@ label monika_letter_reader:
 
     elif not madechoice.lower().find("birthday") == -1 and not birthdayDone and mas_isMonikaBirthday():
         show monika at t11
-        $ fileToRead = madechoice
         $ bithdayDone = True
         call monika_read_file
 
@@ -175,7 +172,6 @@ label monika_letter_reader:
 
     elif not madechoice == "":
         show monika at t11
-        $ fileToRead = madechoice
         call monika_read_file
 
         if (fileEmpty):
@@ -210,8 +206,9 @@ label monika_letter_reader:
 
             elif goodCount - badCount == 0:
                 #didn't like, nor dislike
-                m "Thanks for that, [player]..."
-                m "But I guess I was expecting a little more"
+                m "Thanks for that, [player]."
+                m "That was a nice letter!"
+                return
 
             else:
                 #Not good. Can have more conditions based on the value of badCount possibly

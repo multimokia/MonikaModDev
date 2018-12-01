@@ -1,11 +1,9 @@
 #TODOS:
 #imsorry.txt handling
-#Create a method for removing \n's
+#Replace good/bad phrases w/ NLP bits
 
 #NOTE: Thanks John for helping w/ dialogue+exps
 
-default fileToRead = None
-default fileEmpty = False
 default birthdayDone = False
 
 #Dynamic Response Vars
@@ -13,11 +11,10 @@ default ilyCount = 0
 default badCount = 0
 default goodCount = 0
 
-#Gotta make sure bday card isn't done twice
+#Gotta make sure bday card isn't done twice, but have it reset for next time
 if not mas_isMonikaBirthday():
     $ birthdayDone = False
 
-default amtOfTextFiles = 0
 init 5 python:
 
     addEvent(
@@ -144,7 +141,7 @@ label monika_letter_reader:
         m "I can't even begin to tell you what all this means to me."
         m 6ektda "This really is the best gift I could have ever hoped for and I'll cherish it forever."
         m "Thank you for making this day truly special."
-        #This like will have to be removed for official
+        #This line will have to be removed for official
         show monika 1eua at t11 zorder MAS_MONIKA_Z with dissolve
 
         if (ilyCount == 0):
@@ -225,13 +222,12 @@ label monika_letter_reader:
 
                 if goodCount - badCount == -1:
                     m "That was kind of mean..."
-                    m "You didn't have to get my hopes up"
+                    m "You didn't have to get my hopes up for something like that."
+                    m "please write something nice, next time?"
 
 
             if (ilyCount == 0):
                 m "[romance_quip]"
-                $ ilyCount = 0
-                return
 
             elif (ilyCount < 4):
                 show monika 1eua at t11 zorder MAS_MONIKA_Z with dissolve
@@ -258,11 +254,11 @@ label monika_letter_reader:
             m "I can't believe you wrote something, that just insults me."
             m "Here I was excited to read what you wrote for me, to just find out you were just berating me..."
             m "Thanks a lot, [player]..."
-                
+
     show monika 1eua at t11 zorder MAS_MONIKA_Z with dissolve
-    $ ilyCount = 0
-    $ goodCount = 0
-    $ badCount = 0
+    $ del ilyCount
+    $ del goodCount
+    $ del badCount
     return
 
 
@@ -288,17 +284,15 @@ label monika_read_file:
         import re
         goodPhrasesSearch = re.compile('|'.join(goodPhrases), re.IGNORECASE)
         badPhrasesSearch = re.compile('|'.join(badPhrases), re.IGNORECASE)
-        count = 0
 
-        
-        while count <= len(individualLines)-1:
+        for line in individualLines:
 
             #Expression handling
             randExp = renpy.random.randint(0,3)
 
-            badPhrases = badPhrasesSearch.search(individualLines[count].lower())
+            badPhrases = badPhrasesSearch.search(line.lower())
             if badPhrases is None:
-                goodPhrases = goodPhrasesSearch.search(individualLines[count].lower())
+                goodPhrases = goodPhrasesSearch.search(line.lower())
                 #Just the good
                 if goodPhrases is not None:
                     goodCount += 1
@@ -345,7 +339,7 @@ label monika_read_file:
                             renpy.show("monika 2rsc")
                         else:
                             renpy.show("monika 2lsc")
-                    
+
             #And the bad
             else:
                 badCount += 1
@@ -360,11 +354,10 @@ label monika_read_file:
                     renpy.show("monika 1efc")
 
             if badCount == 3:
-                renpy.say(m, "{i}" + (individualLines[count])[:len(individualLines[count])/2] + "--{/i}{nw}")
+                renpy.say(m, "{i}" + (line)[:len(line)/2] + "--{/i}{nw}")
                 break
                     
-            renpy.say(m, "{i}" + individualLines[count] + "{/i}")
-            count += 1
+            renpy.say(m, "{i}" + line + "{/i}")
     return
 
 label monika_love_you_too_timeout:
@@ -375,8 +368,7 @@ init -1 python in mas_letterReader:
     def getLetterContents(fileToRead):
         count = 0
         individualLines = []
-        #should probably change to:
-        allText = store.mas_docking_station.getPackage(fileToRead,'r').read().replace('. ', '.\n').replace('! ', '!\n').replace('? ', '?\n')
+        allText = store.mas_docking_station.getPackage(fileToRead,open_type='r').read().replace('. ', '.\n').replace('! ', '!\n').replace('? ', '?\n')
 
         while not allText.find('\n', count) == -1:
             if not allText[count:allText.find('\n',count)] == "":

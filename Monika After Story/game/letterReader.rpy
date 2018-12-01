@@ -7,9 +7,6 @@
 default birthdayDone = False
 
 #Dynamic Response Vars
-default ilyCount = 0
-default badCount = 0
-default goodCount = 0
 
 #Gotta make sure bday card isn't done twice, but have it reset for next time
 if not mas_isMonikaBirthday():
@@ -214,7 +211,7 @@ label monika_letter_reader:
             elif goodCount - badCount == 0:
                 #didn't like, nor dislike
                 m "Thanks for that, [player]..."
-                m "I guess I was expecting a little more"
+                m "But I guess I was expecting a little more"
 
             else:
                 #Not good. Can have more conditions based on the value of badCount possibly
@@ -263,6 +260,9 @@ label monika_letter_reader:
 
 
 label monika_read_file:
+    $ ilyCount = 0
+    $ badCount = 0
+    $ goodCount = 0
 
     python:
         individualLines = mas_letterReader.getLetterContents(fileToRead)

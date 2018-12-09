@@ -2,6 +2,7 @@
 #imsorry.txt handling
 #Replace good/bad phrases w/ NLP bits
 #NOTE: Thanks John for helping w/ dialogue+exps
+#Possible TODO: sprite generation by string addition, since renpy.show takes in a string
 
 #TODO: Replace this with a better system
 default birthdayDone = False

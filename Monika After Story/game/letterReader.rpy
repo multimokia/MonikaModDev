@@ -58,7 +58,9 @@ label monika_letter_reader:
             "i love you",
             "truly love you",
             "you are amazing",
-            "you're amazing"
+            "you're amazing",
+            "you are my heart",
+            "my " + m_name.lower()
         ]
 
         #Bad Phrases: (expand)
@@ -185,43 +187,39 @@ label monika_letter_reader:
             
             if goodCount - badCount >5:
                 #really liked it
-                if isAnniAny():
-                    pass
-                else:
-                    m 6ektsa "..."
-                    m "That was beautiful, [player]."
-                    m 6ektda "Being able to actually read your true feelings, in your own words..."
-                    m "Well it just means everything to me."
-                    m 2eka "Thank you, [player]."
+                m 6ektsa "..."
+                m "That was beautiful, [player]."
+                m 6ektda "Being able to actually read your true feelings, in your own words..."
+                m "Well it just means everything to me."
+                m 2eka "Thank you, [player]."
             
             elif goodCount - badCount > 0:
                 #liked it
-                if isAnniAny():
-                    m "[player]..."
-                    m "That was so sweet, it means a lot to me that you decided to write out your feelings like that."
+                m 1eka "[player]..."
+                m 1ekbsa "That was so sweet, it means a lot to me that you decided to write out your feelings like that."
+
+                if mas_isSpecialDay():
                     m "Thanks for writing this card for me, I'll always treasure it."
                 else:
-                    m "[player]..."
-                    m "That was so sweet, it means a lot to me that you decided to write out your feelings like that."
                     m "Thanks for writing this letter for me, I'll always treasure it."
 
             elif goodCount - badCount == 0:
                 #didn't like, nor dislike
-                m "Thanks for that, [player]."
-                m "That was a nice letter!"
+                m 1eka "Thanks for that, [player]."
+                m 1hua "That was a nice letter!"
                 return
 
             else:
                 #Not good. Can have more conditions based on the value of badCount possibly
-                m "[player]..."
+                m 1ekd "[player]..."
 
                 if goodCount - badCount == -1:
-                    m "That was kind of mean..."
-                    m "You didn't have to get my hopes up for something like that."
-                    m "please write something nice, next time?"
+                    m 2ekc "That was kind of mean..."
+                    m 2rkc "You didn't have to get my hopes up for something like that."
+                    m 2ekd "please write something nice, next time?"
 
 
-            if (ilyCount == 0):
+            if ilyCount == 0 and goodCount-badCount > 0:
                 m "[romance_quip]"
 
             elif (ilyCount < 4):

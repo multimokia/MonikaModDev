@@ -59,7 +59,10 @@ label monika_letter_reader:
             "truly love you",
             "you are amazing",
             "you're amazing",
-            "you are my heart",
+            "my heart",
+            "my world",
+            "my life",
+            "my everything",
             "my " + m_name.lower()
         ]
 

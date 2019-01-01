@@ -6,7 +6,7 @@
 
 #TODO: Replace this with a better system
 default birthdayDone = False
-
+default persistent._mas_letters_historic = dict()
 #Gotta make sure bday card isn't done twice, but have it reset for next time
 if not mas_isMonikaBirthday():
     $ birthdayDone = False
@@ -115,7 +115,7 @@ label monika_letter_reader:
         m 2ekc "Oh... Alright then."
         return
 
-    elif not madechoice.lower().find("birthday") == -1 and not birthdayDone and mas_isMonikaBirthday():
+    elif not fileToRead.lower().find("birthday") == -1 and not birthdayDone and mas_isMonikaBirthday():
         show monika at t11
         $ bithdayDone = True
         call monika_read_file
@@ -176,7 +176,7 @@ label monika_letter_reader:
             show monika 5ekbfa at t11 zorder MAS_MONIKA_Z with dissolve
             m "[player], I love you too. More than I could ever express."
 
-    elif not madechoice == "":
+    elif not fileToRead == "":
         show monika at t11
         call monika_read_file
 
@@ -279,6 +279,18 @@ label monika_read_file:
         return
 
     $ fileEmpty = False
+
+    #Add this letter to our db
+    $ mas_letterReader.register_letter((fileToRead.replace('.txt',""),store.mas_docking_station.getPackage(fileToRead,open_type='r').read().replace('. ', '.\n').replace('! ', '!\n').replace('? ', '?\n')))
+
+    play sound page_turn
+    show screen mas_generic_poem(_poem=persistent._mas_letters_historic[datetime.date.today()][fileToRead.replace('.txt',"")],_styletext="player_text")
+    with Dissolve(1)
+
+    $ pause()
+
+    hide screen mas_generic_poem
+    with Dissolve(0.5)
     python:
         import re
         goodPhrasesSearch = re.compile('|'.join(goodPhrases), re.IGNORECASE)
@@ -364,6 +376,7 @@ label monika_love_you_too_timeout:
 
 init -1 python in mas_letterReader:
     import store
+    import datetime
     def getLetterContents(fileToRead):
         count = 0
         individualLines = []
@@ -376,3 +389,39 @@ init -1 python in mas_letterReader:
 
         individualLines.append(allText[count:])
         return individualLines
+
+    def register_letter(letter):
+        """
+        Registers the given letter, used for comparing if player has given this letter before/possible scrapbooking or something
+        IN:
+            letter - The poem object
+        """
+        # check for stats dict for today
+        today = datetime.date.today()
+        if not today in store.persistent._mas_letters_historic:
+            store.persistent._mas_letters_historic[today] = dict()
+
+        # Add stats
+        store.persistent._mas_letters_historic[today][letter.title] = letter
+        return
+
+    def isNewLetter(letter):
+        """
+        Checks if the letter was given to Monika sometime in the past
+        IN:
+            letter - The poem object
+        OUT:
+            bool. True if letter is new, False otherwise.
+        """
+        for date in store.persistent._mas_letters_historic:
+            for histLetter in date:
+                if (histLetter.title == letter.title) and (histLetter.text == letter.text):
+                    return False
+        return True
+
+
+style player_text:
+    font "mod_assets/font/Caveat-Regular.ttf"
+    size 24
+    color "#000"
+    outlines []

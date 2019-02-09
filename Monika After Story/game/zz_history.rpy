@@ -175,6 +175,25 @@ init -860 python in mas_history:
         return found_data
 
 
+    def verify(key, _verify, years_list):
+        """
+        Internali version of mas_HistVerify
+        """
+        if len(years_list) == 0:
+            years_list = range(2017, datetime.date.today().year+1)
+
+        found_data = lookup_otl(key, years_list)
+        years_found = []
+
+        for year, data_tuple in found_data.iteritems():
+            status, _data = data_tuple
+            
+            if status == L_FOUND and _data == _verify:
+                years_found.append(year)
+
+        return (len(years_found) > 0, years_found)
+
+
     ### archive saving functions: (NOT PUBLIC)
     def _store(value, key, year):
         """
@@ -260,6 +279,20 @@ init -850 python:
         return store.mas_history.lookup(key, year)
 
 
+    def mas_HistLookup_k(year, *keys):
+        """
+        Looks up data in the historical archives
+        NOTE: this accepts keys as string pieces that are put together
+
+        IN:
+            year - year to look up data
+            keys - string pieces of a key to search for
+
+        RETURNS: same as mas_HistLookup
+        """
+        return store.mas_history.lookup(".".join(keys), year)
+
+
     def mas_HistLookup_ot(key, *years):
         """
         Looks up data overtime in the historical archives.
@@ -288,6 +321,19 @@ init -850 python:
         return store.mas_history.lookup_otl(key, years_list)
 
 
+    def mas_HistLookup_otl_k(years_list, *keys):
+        """
+        Looks up data overtime in the historical archives
+
+        IN:
+            years_list - list of years to lookup data
+            *keys - string pieces of a key to search for
+
+        RETURNS: See mas_HistLookup_otl
+        """
+        return store.mas_history.lookup_otl(".".join(keys), years_list)
+
+
     def mas_HistVerify(key, _verify, *years):
         """
         Verifies if data at the given key matches the verification value.
@@ -303,19 +349,23 @@ init -850 python:
             [0]: true/False if we found data that matched the verification
             [1]: list of years that matched the verification
         """
-        if len(years) == 0:
-            years = range(2017, datetime.date.today().year+1)
+        return store.mas_history.verify(key, _verify, years)
 
-        found_data = mas_HistLookup_otl(key, years)
-        years_found = []
 
-        for year, data_tuple in found_data.iteritems():
-            status, _data = data_tuple
-            
-            if status == store.mas_history.L_FOUND and _data == _verify:
-                years_found.append(year)
+    def mas_HistVerify_k(years_list, _verify, *keys):
+        """
+        Verifies if data at the given key matches the verification value.
 
-        return (len(years_found) > 0, years_found)
+        IN:
+            years_list - list of years to look up data (as args)
+                Pass an empty list if you want to lookup all years since
+                2017.
+            _verify - the data we want to match to
+            *keys - string pieces of a key to search for
+
+        RETURNS: see mas_HistVerify
+        """
+        return store.mas_history.verify(".".join(keys), _verify, years_list)
 
 
     ## MASHistorySaver stuff
@@ -467,8 +517,13 @@ init -850 python:
             IN:
                 data_tuple - tuple of the following format:
                     [0]: datetime to set the trigger property
+                    [1]: use_year_before 
+                        - check for existence before loading
             """
             self.setTrigger(data_tuple[0])
+            
+            if len(data_tuple) > 1:
+                self.use_year_before = data_tuple[1]
 
 
         def setTrigger(self, _trigger):
@@ -554,8 +609,10 @@ init -850 python:
 
             RETURNS tuple of the following format:
                 [0]: trigger - the trigger property of this object
+                [1]: use_year_before - the use_year_before property of this obj
+                    NOTE: needed for ease of migrations
             """
-            return (self.trigger,)
+            return (self.trigger, self.use_year_before)
 
 
 init -800 python in mas_history:
@@ -595,7 +652,7 @@ init -816 python in mas_delact:
     nothing = "temp"
 
 init -816 python in mas_history:
-    from store.mas_delact import _MDA_safeadd
+    from store.mas_delact import _MDA_safeadd, _MDA_saferm
     # mas history store has safeadd
 
 init -815 python in mas_history:
@@ -605,7 +662,9 @@ init -815 python in mas_history:
     def _bday_exit_pp(mhs):
         # this PP will just add the appropriate delayed action IDs to the 
         # persistent delayed action list.
-        _MDA_safeadd(3, 4, 5, 6, 7)
+        #_MDA_safeadd(3, 4, 5, 6, 7)
+        #_MDA_safeadd(3, 4)
+        pass
 
 
 init -810 python:
@@ -639,8 +698,12 @@ init -810 python:
             # lifestyles (of the rich and famous)
             "_mas_pm_religious": "pm.lifestyle.religious",
             "_mas_pm_like_playing_sports": "pm.lifestyle.plays_sports",
+            "_mas_pm_like_playing_tennis": "pm.lifestyle.plays_tennis",
             "_mas_pm_meditates": "pm.lifestyle.meditates",
             "_mas_pm_see_therapist": "pm.lifestyle.sees_therapist",
+            "_mas_pm_driving_can_drive": "pm.lifestyle.can_drive",
+            "_mas_pm_driving_learning": "pm.lifestyle.learning_to_drive",
+            "_mas_pm_driving_post_accident": "pm.lifestyle.driving_post_accident",
 
             # lifestyle / ring
             "_mas_pm_wearsRing": "pm.lifestyle.ring.wears_one",
@@ -706,6 +769,8 @@ init -810 python:
 
             # actions / mas / dev
             "_mas_pm_has_rpy": "pm.actions.mas.dev.has_rpy",
+            "_mas_pm_has_contributed_to_mas": "pm.actions.mas.dev.has_contributed",
+            "_mas_pm_wants_to_contribute_to_mas": "pm.actions.mas.dev.wants_to_contribute",
 
             # location
             "_mas_pm_live_in_city": "pm.location.live_in_city",
@@ -749,6 +814,7 @@ init -810 python:
 
             # exp (experience)
             "_mas_pm_given_false_justice": "pm.exp.given_false_justice",
+            "_mas_pm_driving_been_in_accident": "pm.exp.been_in_car_accident",
 
             # op (opinions)
             # op / monika
@@ -784,6 +850,8 @@ init -810 python:
     store.mas_history.addMHS(MASHistorySaver(
         "922",
         datetime.datetime(2018, 9, 30),
+        # TODO: change trigger to bette rdate
+#        datetime.datetime(2020, 1, 6), 
         {
             "_mas_bday_opened_game": "922.actions.opened_game",
             "_mas_bday_no_time_spent": "922.actions.no_time_spent",

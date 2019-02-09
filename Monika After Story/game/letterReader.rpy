@@ -281,16 +281,16 @@ label monika_read_file:
     $ fileEmpty = False
 
     #Add this letter to our db
-    $ mas_letterReader.register_letter((fileToRead.replace('.txt',""),store.mas_docking_station.getPackage(fileToRead,open_type='r').read().replace('. ', '.\n').replace('! ', '!\n').replace('? ', '?\n')))
+    #$ mas_letterReader.register_letter((fileToRead.replace('.txt',""),store.mas_docking_station.getPackage(fileToRead,open_type='r').read().replace('. ', '.\n').replace('! ', '!\n').replace('? ', '?\n')))
 
-    play sound page_turn
-    show screen mas_generic_poem(_poem=persistent._mas_letters_historic[datetime.date.today()][fileToRead.replace('.txt',"")],_styletext="player_text")
-    with Dissolve(1)
+    #play sound page_turn
+    #show screen mas_generic_poem(_poem=persistent._mas_letters_historic[datetime.date.today()][fileToRead.replace('.txt',"")],_styletext="player_text")
+    #with Dissolve(1)
 
-    $ pause()
+    #$ pause()
 
-    hide screen mas_generic_poem
-    with Dissolve(0.5)
+    #hide screen mas_generic_poem
+    #with Dissolve(0.5)
     python:
         import re
         goodPhrasesSearch = re.compile('|'.join(goodPhrases), re.IGNORECASE)

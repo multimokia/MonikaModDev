@@ -311,14 +311,22 @@ init python:
     mas_battery_supported = battery.is_supported()
 
     # we need a new music channel for background audio (like rain!)
+    # this uses the amb (ambient) mixer. 
     renpy.music.register_channel(
         "background",
-        mixer="sfx",
+        mixer="amb",
         loop=True,
         stop_on_mute=True,
         tight=True
     )
-    renpy.music.set_volume(songs.getVolume("music"), channel="background")
+
+    # also need another verison of background for concurrency
+    renpy.music.register_channel(
+        "backsound",
+        mixer="amb",
+        loop=False,
+        stop_on_mute=True
+    )
 
     #Define new functions
     def show_dialogue_box():
@@ -484,12 +492,38 @@ init python:
         RETURNS:
             rain weather to use, or None if we dont want to change weather
         """
-        if mas_isMoniNormal(higher=True):
-            return None
-
-        # Upset and lower means we need to roll
+        #All paths roll
         chance = random.randint(1,100)
-        if mas_isMoniUpset() and chance <= MAS_RAIN_UPSET:
+        if mas_isMoniNormal(higher=True):
+            #NOTE: Chances are as follows:
+            #Spring:
+            #   - Rain: 50%
+            #   - Thunder: 20% (40% of that 50%)
+            #
+            #Summer:
+            #   - Rain: 10%
+            #   - Thunder: 6% (60% of that 10%)
+            #
+            #Fall:
+            #   - Rain: 30%
+            #   - Thunder: 12% (40% of that 50%)
+            if mas_isSpring() and chance <= 50:
+                if chance <= 20:
+                    return mas_weather_thunder
+                return mas_weather_rain
+
+            elif mas_isSummer() and chance <= 10:
+                if chance <= 6:
+                    return mas_weather_thunder
+                return mas_weather_rain
+
+            elif mas_isFall() and chance <= 30:
+                if chance <= 12:
+                    return mas_weather_thunder
+                return mas_weather_rain
+
+        #Otherwise rain based on how Moni's feeling
+        elif mas_isMoniUpset() and chance <= MAS_RAIN_UPSET:
             return mas_weather_rain
 
         elif mas_isMoniDis() and chance <= MAS_RAIN_DIS:
@@ -592,6 +626,36 @@ init python:
         Returns true if text speed is enabled
         """
         return store.mas_globals.text_speed_enabled
+
+
+    def mas_isGameUnlocked(gamename):
+        """
+        Checks if the given game is unlocked.
+        NOTE: this is using the game_unlocks database, which only cars about
+        whether or not you have reached the appropraite level to unlock a game.
+        Each game may be disabled for other reasons not handled via
+        this system.
+
+        IN:
+            gamename - name of the game to check
+
+        RETURNS: True if the game is unlocked, false if not
+        """
+        if persistent.game_unlocks is None:
+            return False
+
+        return persistent.game_unlocks.get(gamename, False)
+
+
+    def mas_unlockGame(gamename):
+        """
+        Unlocks the given game. 
+
+        IN:
+            gamename - name of the game to unlock
+        """
+        if gamename in persistent.game_unlocks:
+            persistent.game_unlocks[gamename] = True
 
 
 # IN:
@@ -763,7 +827,7 @@ label pick_a_game:
         # single var for readibility
         chess_unlocked = (
             is_platform_good_for_chess()
-            and persistent.game_unlocks["chess"]
+            and mas_isGameUnlocked("chess")
             and not chess_disabled
         )
 
@@ -778,7 +842,7 @@ label pick_a_game:
 
     menu:
         m "[play_menu_dlg]"
-        "Pong." if persistent.game_unlocks['pong']:
+        "Pong." if mas_isGameUnlocked("pong"):
             if not renpy.seen_label('game_pong'):
                 $grant_xp(xp.NEW_GAME)
             call game_pong from _call_game_pong
@@ -786,11 +850,11 @@ label pick_a_game:
             if not renpy.seen_label('game_chess'):
                 $grant_xp(xp.NEW_GAME)
             call game_chess from _call_game_chess
-        "[_hangman_text]." if persistent.game_unlocks['hangman']:
+        "[_hangman_text]." if mas_isGameUnlocked('hangman'):
             if not renpy.seen_label("game_hangman"):
                 $ grant_xp(xp.NEW_GAME)
             call game_hangman from _call_game_hangman
-        "Piano." if persistent.game_unlocks['piano']:
+        "Piano." if mas_isGameUnlocked('piano'):
             if not renpy.seen_label("mas_piano_start"):
                 $ grant_xp(xp.NEW_GAME)
             call mas_piano_start from _call_play_piano
@@ -1290,7 +1354,7 @@ label ch30_post_mid_loop_eval:
                 show mas_lightning zorder 4
 
             $ pause(0.5)
-            play sound "mod_assets/sounds/amb/thunder.wav"
+            play backsound "mod_assets/sounds/amb/thunder.wav"
         
         # Before a random topic can be displayed, a set waiting time needs to pass.
         # The waiting time is set initially, after a random chatter selection and before a random topic is selected.
@@ -1439,6 +1503,22 @@ label ch30_reset:
     python:
         import datetime
         today = datetime.date.today()
+
+    # check for game unlocks
+    python:
+        game_unlock_db = {
+            "pong": "ch30_main", # pong should always be unlocked
+            "chess": "unlock_chess",
+            "hangman": "unlock_hangman",
+            "piano": "unlock_piano",
+        }
+
+        for game_name,game_startlabel in game_unlock_db.iteritems():
+            if (
+                    not mas_isGameUnlocked(game_name)
+                    and renpy.seen_label(game_startlabel)
+                ):
+                mas_unlockGame(game_name)
 
     # reset mas mood bday
     python:
@@ -1595,6 +1675,9 @@ label ch30_reset:
             ):
             # monika takes off santa outfit after d25
             monika_chr.reset_clothes(False)
+
+        if not mas_isD25Season():
+            persistent._mas_d25_deco_active = False
 
     ## certain things may need to be reset if we took monika out
     # NOTE: this should be at the end of this label, much of this code might

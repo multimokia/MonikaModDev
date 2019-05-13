@@ -1104,6 +1104,10 @@ label i_greeting_monikaroom:
 
     $ has_listened = False
 
+    # need to remove this in case the player quits the special player bday greet before the party and doesn't return until the next day
+    if "mas_player_bday_no_restart" in persistent.event_list:
+        $ persistent.event_list.remove("mas_player_bday_no_restart")
+
     # FALL THROUGH
 label monikaroom_greeting_choice:
     $ _opendoor_text = "...Gently open the door."
@@ -1271,7 +1275,7 @@ label monikaroom_greeting_ear_narration:
         # clear out var
         $ willchange_ev = None
 
-    call spaceroom from _call_spaceroom_enar
+    call spaceroom(dissolve_all=True, scene_change=True)
 
     if mas_isMoniNormal(higher=True):
         m 1hub "It's me!"
@@ -1522,9 +1526,7 @@ label monikaroom_greeting_opendoor_locked:
     m "Now let me fix up this room..."
 
     hide paper_glitch2
-    scene black
-    $ scene_change = True
-    call spaceroom from _call_sp_mrgo_l
+    call spaceroom(scene_change=True)
 
     if renpy.seen_label("monikaroom_greeting_opendoor_locked_tbox"):
         $ style.say_window = style.window
@@ -1584,7 +1586,7 @@ label monikaroom_greeting_opendoor_seen_partone:
     $ mas_disable_quit()
 
 #    scene bg bedroom
-    call spaceroom(start_bg="bedroom",hide_monika=True) from _call_sp_mrgo_spo
+    call spaceroom(start_bg="bedroom",hide_monika=True, scene_change=True, dissolve_all=True)
     pause 0.2
     show monika 1esc at l21 zorder MAS_MONIKA_Z
     pause 1.0
@@ -1645,9 +1647,7 @@ label monikaroom_greeting_opendoor_post2:
 #    else:
 #        m 3eua "Let me fix this scene up."
     m 1dsc "...{w=1.5}{nw}"
-    scene black
-    $ scene_change = True
-    call spaceroom(hide_monika=True) from _call_sp_mrgo_p2
+    call spaceroom(hide_monika=True, scene_change=True)
     show monika 4eua zorder MAS_MONIKA_Z at i11
     m "Tada!"
 #    if renpy.seen_label("monikaroom_greeting_opendoor_post2"):
@@ -1663,7 +1663,11 @@ label monikaroom_greeting_opendoor:
     # reset outfit since standing is stock
     $ monika_chr.reset_outfit(False)
 
-    call spaceroom(start_bg="bedroom",hide_monika=True) from _call_spaceroom_5
+    call spaceroom(start_bg="bedroom",hide_monika=True, dissolve_all=True)
+
+    # show this under bedroom so the masks window skit still works
+    show bedroom as sp_mas_backbed zorder 4
+
     m 2i "~Is it love if I take you, or is it love if I set you free?~"
     show monika 1 at l32 zorder MAS_MONIKA_Z
 
@@ -1682,10 +1686,10 @@ label monikaroom_greeting_opendoor:
     m 2eud "..."
     show monika 1 at t33
     m 1eud "...and..."
-    if is_morning():
-        show monika_day_room zorder MAS_BACKGROUND_Z with wipeleft
+    if mas_isMorning():
+        show monika_day_room as sp_mas_room zorder MAS_BACKGROUND_Z with wipeleft 
     else:
-        show monika_room zorder MAS_BACKGROUND_Z with wipeleft
+        show monika_room as sp_mas_room zorder MAS_BACKGROUND_Z with wipeleft
     show monika 1 at t32
     m 3eua "There we go!"
     menu:
@@ -1694,11 +1698,10 @@ label monikaroom_greeting_opendoor:
             m 1hksdlb "Oops! I forgot about that~"
             show monika 1 at t21
             m "Hold on..."
-            hide bedroom
+            hide sp_mas_backbed with dissolve
             m 2hua "And... all fixed!"
             show monika 1 at lhide
             hide monika
-            $ renpy.hide("bedroom")
     $ persistent.seen_monika_in_room = True
     jump monikaroom_greeting_post
     # NOTE: return is expected in monikaroom_greeting_post
@@ -1731,7 +1734,7 @@ label monikaroom_greeting_knock:
                 if persistent.seen_monika_in_room:
                     m 6ekc "Thanks for knocking."
 
-            call spaceroom(hide_monika=True) from _call_spaceroom_6
+            call spaceroom(hide_monika=True, dissolve_all=True, scene_change=True)
     jump monikaroom_greeting_post
     # NOTE: return is expected in monikaroom_greeting_post
 
@@ -2427,7 +2430,7 @@ label greeting_hairdown:
     # have monika's hair down
     $ monika_chr.change_hair(mas_hair_down, by_user=False)
 
-    call spaceroom
+    call spaceroom(dissolve_all=True, scene_change=True, force_exp='monika 1eua')
 
     m 1eua "Hi there, [player]!"
     m 4hua "Notice anything different today?"
@@ -2824,9 +2827,9 @@ init 5 python:
 label greeting_siat:
     m 1hub "{cps=*0.6}{i}~[player] and Monika sittin' in a tree~{/i}{/cps}"
     m 1hubfb "{cps=*0.6}{i}~K-I-S-S-I-N-G~{/i}{/cps}"
-    m 3hubfb "{i}{cps=*0.6}~First comes love~{/i}{/cps}"
-    m "{i}{cps=*0.6}~Then comes marriage~{/i}{/cps}"
-    m "{i}{cps=*0.6}~Then comes--{/i}{/cps}"
+    m 3hubfb "{cps=*0.6}{i}~First comes love~{/i}{/cps}"
+    m "{cps=*0.6}{i}~Then comes marriage~{/i}{/cps}"
+    m "{cps=*0.6}{i}~Then comes--{/i}{/cps}"
     m 3wubfsdlo "W-wha?!"
     m 2wubfsdld "[player]! H-how long have you been there?!"
     m 2rkbfsdld "I...{w=1} I didn't notice you come in...{w=1} I was just..."

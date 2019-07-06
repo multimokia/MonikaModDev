@@ -40,6 +40,9 @@ init -1 python in mas_globals:
     in_idle_mode = False
     # set to True if in idle mode
 
+    late_farewell = False
+    # set to True if we had a late farewell
+
 
 init 970 python:
     import store.mas_filereacts as mas_filereacts
@@ -199,7 +202,7 @@ init -10 python:
             Gets skip midloop eval value
             """
             return self.get(self.SKIP_MID_LOOP_EVAL)
-            
+
 
     mas_idle_mailbox = MASIdleMailbox()
 
@@ -700,6 +703,15 @@ init python:
             persistent.game_unlocks[gamename] = True
 
 
+    def mas_check_player_derand():
+        """
+        Checks the player derandom dict for events that are not random and derandoms them
+        """
+        for ev_label, ev in persistent._mas_player_derandomed.iteritems():
+            if ev.random:
+                ev.random = False
+
+
 init 1 python:
     morning_flag = mas_isMorning()
 
@@ -731,6 +743,8 @@ init 1 python:
 #       (Default: None)
 label spaceroom(start_bg=None, hide_mask=False, hide_monika=False, dissolve_all=False, dissolve_masks=False, scene_change=False, force_exp=None):
 
+    with None
+
     if scene_change:
         scene black
 
@@ -748,6 +762,22 @@ label spaceroom(start_bg=None, hide_mask=False, hide_monika=False, dissolve_all=
             if morning_flag or scene_change:
                 morning_flag = False
                 monika_room = "monika_room"
+
+        ## are we hiding monika
+        if not hide_monika:
+            if force_exp is None:
+#                force_exp = "monika idle"
+                if dissolve_all:
+                    force_exp = store.mas_affection._force_exp()
+
+                else:
+                    force_exp = "monika idle"
+
+            if not renpy.showing(force_exp):
+                renpy.show(force_exp, at_list=[t11], zorder=MAS_MONIKA_Z)
+
+                if not dissolve_all:
+                    renpy.with_statement(None)
 
         # if we onyl want to dissolve masks, then we dissolve now
         if not dissolve_all and not hide_mask:
@@ -768,19 +798,6 @@ label spaceroom(start_bg=None, hide_mask=False, hide_monika=False, dissolve_all=
                 )
                 mas_calShowOverlay()
 
-        ## are we hiding monika
-        if not hide_monika:
-            if force_exp is None:
-#                force_exp = "monika idle"
-                if dissolve_all:
-                    force_exp = store.mas_affection._force_exp()
-
-                else:
-                    force_exp = "monika idle"
-
-            if not renpy.showing(force_exp):
-                renpy.show(force_exp, at_list=[t11], zorder=MAS_MONIKA_Z) 
-#            show monika idle at t11 zorder MAS_MONIKA_Z
 
     # vignette
     if store.mas_globals.show_vignette:
@@ -824,6 +841,8 @@ label ch30_main:
 
     # set monikas outfit to default
     $ monika_chr.reset_outfit(False)
+    $ monika_chr.wear_acs(mas_acs_ribbon_def)
+
     # so other flows are aware that we are in intro
     $ mas_in_intro_flow = True
 
@@ -852,7 +871,7 @@ label ch30_main:
 
     # 3 - keymaps are disabled (default)
 
-    call spaceroom(scene_change=True,dissolve_all=True, force_exp="monika 6dsc")
+    call spaceroom(scene_change=True,dissolve_all=True, force_exp="monika 6dsc_static")
 
     # lets just call the intro instead of pushing it as an event
     # this is way simpler and prevents event loss and other weird inital
@@ -1056,14 +1075,6 @@ label ch30_autoload:
     # general affection checks that hijack flow
     if persistent._mas_affection["affection"] <= -115:
         jump mas_affection_finalfarewell_start
-
-    # sanitiziing the event_list from bull shit
-    if len(persistent.event_list) > 0:
-        python:
-            persistent.event_list = [
-                ev_label for ev_label in persistent.event_list
-                if renpy.has_label(ev_label)
-            ]
 
     # set this to None for now
     $ selected_greeting = None
@@ -1328,6 +1339,12 @@ label ch30_preloop:
     # delayed actions in here please
     $ mas_runDelayedActions(MAS_FC_IDLE_ONCE)
  
+    #Unlock windowreact topics
+    $ mas_resetWindowReacts()
+
+    #Then prepare the notifs
+    $ mas_updateFilterDict()
+
     # save here before we enter the loop
     $ renpy.save_persistent()
 
@@ -1422,6 +1439,12 @@ label ch30_visual_skip:
             # run seasonal check
             mas_seasonalCheck()
 
+            #Clear the notifications tray
+            mas_clearNotifs()
+
+            #Now we check if we should queue windowreact evs
+            mas_checkForWindowReacts()
+
             # check if we need to rebulid ev
             if mas_idle_mailbox.get_rebuild_msg():
                 mas_rebuildEventLists()
@@ -1465,7 +1488,7 @@ label ch30_post_mid_loop_eval:
 
             $ pause(0.1)
             play backsound "mod_assets/sounds/amb/thunder.wav"
-        
+
         # Before a random topic can be displayed, a set waiting time needs to pass.
         # The waiting time is set initially, after a random chatter selection and before a random topic is selected.
         # If the waiting time is not over after waiting a short period of time, the preloop is restarted.
@@ -1476,9 +1499,9 @@ label ch30_post_mid_loop_eval:
             jump post_pick_random_topic
         else:
             $ mas_randchat.setWaitingTime()
-        
+
         window auto
-        
+
 #        python:
 #            if (
 #                    mas_battery_supported
@@ -1551,6 +1574,20 @@ label mas_ch30_select_seen:
         # rebuild the event lists
         $ mas_rev_seen, mas_rev_mostseen = mas_buildSeenEventLists()
 
+        if len(mas_rev_seen) == 0:
+            if len(mas_rev_mostseen) > 0:
+                # jump to most seen if we have any left
+                jump mas_ch30_select_mostseen
+
+            if len(mas_rev_mostseen) == 0 and not seen_random_limit:
+                # all topics seen within last seen delta, push random seen 
+                # limit if not already.
+                $ pushEvent("random_limit_reached")
+                jump post_pick_random_topic
+            
+            # if still no events, just jump to idle loop
+            jump post_pick_random_topic
+
     $ mas_randomSelectAndPush(mas_rev_seen)
 
     jump post_pick_random_topic
@@ -1602,8 +1639,7 @@ label ch30_reset:
             if len(listRpy) == 0 and persistent.current_monikatopic == "monika_rpy_files":
                 $ persistent.current_monikatopic = 0
 
-            while "monika_rpy_files" in persistent.event_list:
-                $ persistent.event_list.remove("monika_rpy_files")
+            $ mas_rmallEVL("monika_rpy_files")
 
         elif len(listRpy) != 0:
             $ queueEvent("monika_rpy_files")
@@ -1642,15 +1678,15 @@ label ch30_reset:
                 mood_ev.unlocked = True
 
     # enabel snowing if its winter
-    python:
-        # TODO: snowing should also be controlled if you like it or not
-        if mas_isWinter():
-            if mas_is_snowing and not mas_weather_snow.unlocked:
-                mas_weather_snow.unlocked = True
-                store.mas_weather.saveMWData()
-                
-                mas_unlockEVL("monika_change_weather", "EVE")
-                renpy.save_persistent()
+#    python:
+#        # TODO: snowing should also be controlled if you like it or not
+#        if mas_isWinter():
+#            if mas_is_snowing and not mas_weather_snow.unlocked:
+#                mas_weather_snow.unlocked = True
+#                store.mas_weather.saveMWData()
+#
+#                mas_unlockEVL("monika_change_weather", "EVE")
+#                renpy.save_persistent()
 #        mas_is_snowing = mas_isWinter()
 #        if mas_is_snowing:
 #
@@ -1665,6 +1701,7 @@ label ch30_reset:
     # reset hair / clothes
     # the default options should always be available.
     $ store.mas_selspr.unlock_hair(mas_hair_def)
+#    $ store.mas_selspr.unlock_hair(mas_hair_ponytail)
     $ store.mas_selspr.unlock_clothes(mas_clothes_def)
 
     # def ribbon always unlocked
@@ -1795,6 +1832,13 @@ label ch30_reset:
         if not mas_isD25Season():
             persistent._mas_d25_deco_active = False
 
+    ## late farewell? set the global and clear the persistent so its auto
+    ##  cleared
+    python:
+        if persistent.mas_late_farewell:
+            store.mas_globals.late_farewell = True
+            persistent.mas_late_farewell = False
+
     ## reactions fix
     python:
         if persistent._mas_filereacts_just_reacted:
@@ -1802,10 +1846,11 @@ label ch30_reset:
 
     # set any prompt variants for acs that can be removed here
     python:
-        if monika_chr.get_acs_of_type('left-hair-clip'):
-            mas_getEV("monika_hairclip_select").prompt = "Can you change your hairclip?"
-        else:
-            mas_getEV("monika_hairclip_select").prompt = "Can you put on a hairclip?"
+        if not monika_chr.is_wearing_acs_type("left-hair-clip"):
+            store.mas_selspr.set_prompt("left-hair-clip", "wear")
+
+        if not monika_chr.is_wearing_acs_type("ribbon"):
+            store.mas_selspr.set_prompt("ribbon", "wear")
 
     ## certain things may need to be reset if we took monika out
     # NOTE: this should be at the end of this label, much of this code might
@@ -1814,5 +1859,26 @@ label ch30_reset:
         if store.mas_dockstat.retmoni_status is not None:
             mas_resetCoffee()
             monika_chr.remove_acs(mas_acs_quetzalplushie)
+
+    # make sure nothing the player has derandomed is now random
+    $ mas_check_player_derand()
+
+    # clean up the event list of baka events
+    python:
+        for index in range(len(persistent.event_list)-1, -1, -1):
+            item = persistent.event_list[index]
+
+            # type check
+            if type(item) != tuple:
+                new_data = (item, False)
+            else:
+                new_data = item
+
+            # label check
+            if renpy.has_label(new_data[0]):
+                persistent.event_list[index] = new_data
+
+            else:
+                persistent.event_list.pop(index)
 
     return

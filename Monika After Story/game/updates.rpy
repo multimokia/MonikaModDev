@@ -26,6 +26,9 @@ init 4 python:
         # clearing this to prevent crash
         persistent.monika_topic = None
 
+        # reset this on release to show unseen
+        persistent._mas_unsee_unseen = False
+
 #default persistent._mas_084_hotfix_farewellbug = None
 
 # post many things, but not late update script appropriate
@@ -301,6 +304,21 @@ label v0_3_1(version=version): # 0.3.1
     return
 
 # non generic updates go here
+
+# 0.9.5
+label v0_9_5(version="v0_9_5"):
+    python:
+        #Actually unlock the holdme topic since we removed the unlock for this when weather change became a thing
+        if persistent._mas_likes_rain:
+            mas_unlockEVL("monika_rain_holdme", "EVE")
+
+        # move monika_why from pool to random, and derand after one month if seen
+        why_ev = mas_getEV('monika_why')
+        if why_ev is not None:
+            why_ev.pool = False
+            if not renpy.seen_label('monika_why') or not mas_anni.pastOneMonth():
+                why_ev.random = True
+    return
 
 # 0.9.4
 label v0_9_4(version="v0_9_4"):

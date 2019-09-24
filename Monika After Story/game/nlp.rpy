@@ -624,7 +624,7 @@ init 10 python in mas_nlp:
     #START: Naive Bays Text Classifier
     class NaiveBayesTextClassifier:
 
-        def __init__(self, base_dir=None, load=False, file_name='default-classifier.pickle', n_grams=2, characters=False):
+        def __init__(self, base_dir=DEFAULT_PICKLE_DIR, load=False, file_name='default-classifier.pickle', n_grams=2, characters=False):
             self.base_dir = base_dir
             self.file_name = file_name
             if self.base_dir is None:

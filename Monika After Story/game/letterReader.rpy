@@ -301,13 +301,29 @@ label monika_read_file:
             #Expression handling
             randExp = renpy.random.randint(0,3)
 
-            badPhrases = badPhrasesSearch.search(line.lower())
-            if badPhrases is None:
-                goodPhrases = goodPhrasesSearch.search(line.lower())
-                #Just the good
-                if goodPhrases is not None:
-                    goodCount += 1
+            #Let's NLP read
+            perception, impact, believability = mas_classifyStr(line, classifier)
 
+            if perception == "positive":
+                percieved_value += impact
+            elif perception == "negative":
+                percieved_value -= impact
+
+            #Now react
+            #Overall opinion is good
+            if percieved_value > 0:
+                #Overall opinion is very good
+                if percieved_value > 10:
+
+                    if randExp == 0:
+                        renpy.show("monika 1ektpa")
+                    elif randExp == 1:
+                        renpy.show("monika 1ektua")
+                    else:
+                        renpy.show("monika 1ektda")
+
+                #Pretty good
+                elif percieved_value > 5:
                     if randExp == 0:
                         renpy.show("monika 1hua")
                     elif randExp == 1:
@@ -316,58 +332,50 @@ label monika_read_file:
                         renpy.show("monika 1hub")
                     else:
                         renpy.show("monika 1eka")
-                #If nothing good/bad was said
+
+
+                #Overall opinion is good, but not overwhelmingly good
                 else:
-                    #Overall opinion is very good
-                    if goodCount - badCount > 5:
-
-                        if randExp == 0:
-                            renpy.show("monika 1ektpa")
-                        elif randExp == 1:
-                            renpy.show("monika 1ektua")
-                        else:
-                            renpy.show("monika 1ektda")
-                    
-                    #Overall opinion is good, but not overwhelmingly good
-                    elif goodCount - badCount > 0:
-
-                        if randExp == 0:
-                            renpy.show("monika 1hua")
-                        elif randExp == 1:
-                            renpy.show("monika 1eua")
-                        else:
-                            renpy.show("monika 1hub")
-
-                    #Overall opinion is neutral
-                    elif goodCount - badCount == 0:
-                        renpy.show("monika 1esa")
-
-                    #Overall opinion is negative
+                    if randExp == 0:
+                        renpy.show("monika 1hua")
+                    elif randExp == 1:
+                        renpy.show("monika 1eua")
                     else:
-                        if randExp == 0:
-                            renpy.show("monika 2esc")
-                        elif randExp == 1:
-                            renpy.show("monika 2rsc")
-                        else:
-                            renpy.show("monika 2lsc")
+                        renpy.show("monika 1hub")
 
-            #And the bad
+            #Overall opinion is neutral
+            elif percieved_value == 0:
+                renpy.show("monika 1esa")
+
+
+            #Overall opinion is bad
             else:
-                badCount += 1
+                #Too bad, we stop reading here.
+                if percieved_value < -5:
+                    renpy.say(m, "{i}" + (line)[:len(line)/2] + "--{/i}{nw}")
+                    break
 
-                if randExp == 0:
-                    renpy.show("monika 1efc")
-                elif randExp == 1:
-                    renpy.show("monika 1efc")
-                elif randExp == 2:
-                    renpy.show("monika 1efc")
+                #Pretty bad
+                elif percieved_value < -2:
+                    if randExp == 0:
+                        renpy.show("monika 1efc")
+                    elif randExp == 1:
+                        renpy.show("monika 1efc")
+                    elif randExp == 2:
+                        renpy.show("monika 1efc")
+                    else:
+                        renpy.show("monika 1efc")
+
+                #Bad, but not too bad
                 else:
-                    renpy.show("monika 1efc")
+                    if randExp == 0:
+                        renpy.show("monika 2esc")
+                    elif randExp == 1:
+                        renpy.show("monika 2rsc")
+                    else:
+                        renpy.show("monika 2lsc")
 
-            if badCount == 3:
-                renpy.say(m, "{i}" + (line)[:len(line)/2] + "--{/i}{nw}")
-                break
-                    
+
             renpy.say(m, "{i}" + line + "{/i}")
     return
 

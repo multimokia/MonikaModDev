@@ -296,6 +296,10 @@ label monika_read_file:
         goodPhrasesSearch = re.compile('|'.join(goodPhrases), re.IGNORECASE)
         badPhrasesSearch = re.compile('|'.join(badPhrases), re.IGNORECASE)
 
+        #Overall letter opinion
+        percieved_value = 0
+
+        #Now we read the letter out and live react
         for line in individualLines:
 
             #Expression handling

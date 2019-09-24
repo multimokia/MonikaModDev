@@ -57,7 +57,7 @@ init 10 python in mas_nlp:
     from difflib import SequenceMatcher
     from collections import defaultdict
 
-    DEFAULT_PICKLE_DIR = os.path.normcase(renpy.config.gamedir + "mod_assets/nlp_utils/pickles/")
+    DEFAULT_PICKLE_DIR = os.path.normcase(renpy.config.gamedir + "/mod_assets/nlp_utils/pickles/")
     TAGGER_PICKLE = "tagger.pickle"
 
 

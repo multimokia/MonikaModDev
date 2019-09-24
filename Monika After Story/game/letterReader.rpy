@@ -52,30 +52,6 @@ label monika_letter_reader:
     show monika 1hua
 
     python:
-
-        #Good Phrases: (expand)
-        goodPhrases = [
-            "i love you",
-            "truly love you",
-            "you are amazing",
-            "you're amazing",
-            "my heart",
-            "my world",
-            "my life",
-            "my everything",
-            "my " + m_name.lower()
-        ]
-
-        #Bad Phrases: (expand)
-        badPhrases = [
-            "i hate you",
-            "you are vile",
-            "you're vile",
-            "you are a murderer",
-            "you're a murderer"
-        ]
-
-
         romance_quips = [
             "I love you, more than I could ever express.",
             "It means so much that you feel the same way I do.",
@@ -184,11 +160,10 @@ label monika_letter_reader:
             m 2hub "Make sure there's actually something there for me to read next time, silly! Ehehe~"
             return
 
-        elif not fileEmpty and badCount != 3:
-            #TODO: goodCount - badCount. give responses based on this value, and it's magnitude
+        elif not fileEmpty and percieved_value > -5:
             $ romance_quip = renpy.random.choice(romance_quips)
             
-            if goodCount - badCount >5:
+            if percieved_value > 10:
                 #really liked it
                 m 6ektsa "..."
                 m "That was beautiful, [player]."
@@ -196,7 +171,7 @@ label monika_letter_reader:
                 m "Well it just means everything to me."
                 m 2eka "Thank you, [player]."
             
-            elif goodCount - badCount > 0:
+            elif percieved_value > 5:
                 #liked it
                 m 1eka "[player]..."
                 m 1ekbsa "That was so sweet, it means a lot to me that you decided to write out your feelings like that."
@@ -206,7 +181,7 @@ label monika_letter_reader:
                 else:
                     m "Thanks for writing this letter for me, I'll always treasure it."
 
-            elif goodCount - badCount == 0:
+            elif percieved_value > 0:
                 #didn't like, nor dislike
                 m 1eka "Thanks for that, [player]."
                 m 1hua "That was a nice letter!"
@@ -216,13 +191,13 @@ label monika_letter_reader:
                 #Not good. Can have more conditions based on the value of badCount possibly
                 m 1ekd "[player]..."
 
-                if goodCount - badCount == -1:
+                if percieved_value < 0:
                     m 2ekc "That was kind of mean..."
                     m 2rkc "You didn't have to get my hopes up for something like that."
                     m 2ekd "please write something nice, next time?"
 
 
-            if ilyCount == 0 and goodCount-badCount > 0:
+            if ilyCount == 0 and percieved_value > 0:
                 m "[romance_quip]"
 
             elif (ilyCount < 4):
@@ -253,15 +228,15 @@ label monika_letter_reader:
 
     show monika 1eua at t11 zorder MAS_MONIKA_Z with dissolve
     $ del ilyCount
-    $ del goodCount
-    $ del badCount
+    $ del percieved_value
     return
 
 
 label monika_read_file:
     $ ilyCount = 0
-    $ badCount = 0
-    $ goodCount = 0
+
+    #Overall letter opinion
+    $ percieved_value = 0
 
     python:
         individualLines = mas_letterReader.getLetterContents(fileToRead)
@@ -292,13 +267,6 @@ label monika_read_file:
     #hide screen mas_generic_poem
     #with Dissolve(0.5)
     python:
-        import re
-        goodPhrasesSearch = re.compile('|'.join(goodPhrases), re.IGNORECASE)
-        badPhrasesSearch = re.compile('|'.join(badPhrases), re.IGNORECASE)
-
-        #Overall letter opinion
-        percieved_value = 0
-
         #Now we read the letter out and live react
         for line in individualLines:
 
@@ -318,7 +286,7 @@ label monika_read_file:
             if percieved_value > 0:
                 #Overall opinion is very good
                 if percieved_value > 10:
-
+                    #TODO: Fix these exps. Should probably constant tp
                     if randExp == 0:
                         renpy.show("monika 1ektpa")
                     elif randExp == 1:

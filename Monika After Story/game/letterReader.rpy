@@ -181,7 +181,7 @@ label monika_letter_reader:
                 else:
                     m "Thanks for writing this letter for me, I'll always treasure it."
 
-            elif percieved_value > 0:
+            elif percieved_value >= 0:
                 #didn't like, nor dislike
                 m 1eka "Thanks for that, [player]."
                 m 1hua "That was a nice letter!"
@@ -227,8 +227,6 @@ label monika_letter_reader:
             m "Thanks a lot, [player]..."
 
     show monika 1eua at t11 zorder MAS_MONIKA_Z with dissolve
-    $ del ilyCount
-    $ del percieved_value
     return
 
 

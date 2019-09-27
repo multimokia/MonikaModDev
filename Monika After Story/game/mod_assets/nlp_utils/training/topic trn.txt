@@ -1,0 +1,64 @@
+#TODO: set these ordered by eventlabel and cover all topics oof
+#Help pls
+
+positive\Things like that always make me smile
+positive\These things do happen, so it's alright!
+positive\It's one of the nice things.
+positive\I just love talking with you.
+positive\I'll support you in any way I can.
+positive\I'm happy for you.
+positive\I can finally feel your embrace.
+positive\Just thinking about it makes my heart flutter.
+positive\All I want is to always be with you.
+positive\You're the only reason why I'm still here.
+positive\I only want to spend eternity with you.
+positive\It's rather comforting.
+positive\I'll be by your side forever.
+positive\It's surprising, right?
+positive\I hope you enjoy looking into mine
+positive\Thanks to you.
+positive\Thank you.
+positive\I know you wouldn't leave me.
+positive\I don't want to worry you.
+positive\No matter what happens, know that I will always love you.
+positive\As long as I have you.
+positive\I'm willing to make any sacrifice to be with you forever.
+positive\I trust you.
+positive\It's funny.
+positive\You saved my life.
+positive\It feels nice.
+positive\You made my day.
+positive\You can really make their day
+positive\Nothing would make me happier.
+positive\You're so cute.
+positive\Thanks for everything.
+positive\Let me help you.
+positive\That's so sweet!
+positive\Yours forever.
+
+
+neutral\It's an idea which states that only yourself exists.
+neutral\I think, therefore I am.
+neutral\I'm thinking way too much about this.
+neutral\So let's keep it between just us.
+neutral\So I know.
+
+
+negative\Being sold as sex slaves.
+negative\laughs at the misery of everyone not eligible for his miracles.
+negative\I bet he's still laughing at all the pain he caused everyone.
+negative\You'll get overwhelmed quickly.
+negative\It'll break you down and sap your will to live.
+negative\You still won't feel safe.
+negative\I wouldn't want to live in a scenario like that.
+negative\That's what I'm afraid of.
+negative\It's one of the worst things I can imagine.
+negative\I might not be human.
+negative\I'm trapped.
+negative\It scares me.
+negative\Will they still remember?
+negative\An entire year without seeing you even once.
+negative\You'd forgotten about me.
+negative\You don't want to spend time with me anymore.
+negative\I would have just deleted myself.
+negative\Killing yourself.

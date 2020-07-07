@@ -4879,13 +4879,16 @@ init 5 python:
         Event(
             persistent.farewell_database,
             eventlabel="bye_player_bday",
-            unlocked=False,
             prompt="Let's go out for my birthday!",
             pool=True,
+            unlocked=False,
+            action=EV_ACT_UNLOCK,
+            conditional="persistent._mas_player_bday_in_player_bday_mode",
             rules={"no unlock": None},
-            aff_range=(mas_aff.NORMAL,None),
+            aff_range=(mas_aff.NORMAL,None)
         ),
-        code="BYE"
+        code="BYE",
+        skipCalendar=True
     )
 
 label bye_player_bday:

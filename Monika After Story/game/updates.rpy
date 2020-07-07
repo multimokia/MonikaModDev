@@ -372,6 +372,21 @@ label v0_3_1(version=version): # 0.3.1
     return
 
 # non generic updates go here
+#0.11.4
+label v0_11_4(version="v0_11_4"):
+    python:
+        if persistent._mas_player_confirmed_bday:
+            mas_setEVPropValues(
+                "bye_player_bday",
+                conditional="persistent._mas_player_bday_in_player_bday_mode",
+                start_date=mas_player_bday_curr(),
+                end_date=mas_player_bday_curr() + datetime.timedelta(days=1),
+                action=EV_ACT_UNLOCK,
+                years=[]
+            )
+
+    return
+
 #0.11.3
 label v0_11_3(version="v0_11_3"):
     python:

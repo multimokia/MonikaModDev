@@ -759,6 +759,14 @@ label birthdate_set:
             bday_holiday_ev.action = EV_ACT_QUEUE
             Event._verifyAndSetDatesEV(bday_holiday_ev)
 
+        bday_date_ev = mas_getEV("bye_player_bday")
+        if bday_date_ev is no None:
+            bday_date_ev.start_date = mas_player_bday_curr()
+            bday_date_ev.end_date = mas_player_bday_curr() + datetime.timedelta(days=1)
+            bday_date_ev.conditional = "persistent._mas_player_bday_in_player_bday_mode"
+            bday_date_ev.action = EV_ACT_UNLOCK
+            bday_date_ev.years = []
+
     if old_bday is not None:
         $ old_bday = old_bday.replace(year=mas_player_bday_curr().year)
 

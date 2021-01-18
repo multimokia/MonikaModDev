@@ -2765,6 +2765,15 @@ screen scrollable_menu(items, display_area, scroll_align, nvm_text, remove=None)
 screen mas_gen_scrollable_menu(items, display_area, scroll_align, *args):
     style_prefix "scrollable_menu"
 
+    python:
+        if args:
+            display_area = (
+                display_area[0],
+                display_area[1],
+                display_area[2],
+                display_area[3] - 44 * len(args)
+            )
+
     fixed:
         area display_area
 

@@ -3,7 +3,7 @@ python early in mas_logging:
     import os
 
     #Thanks python...
-    from logging import handlers as loghandlers
+    #from logging import handlers as loghandlers
 
     #Consts
     LOG_FORMAT = "[{asctime}] [{levelname}]: {message}"

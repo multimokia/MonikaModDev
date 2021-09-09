@@ -40,7 +40,6 @@ jobs:
       # download base mas
       - name: Copy files over
         run: |
-          unzip mas.zip -d ddlcbase/
           cp -Rf Monika\ After\ Story/* ddlcbase/
 
       # touch file for unstable so it doesn't raise exceptions for some things

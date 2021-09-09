@@ -54,11 +54,11 @@ jobs:
       # distribute
       - name: rpy distribute
         run: |
-          cd renpy
+          cd /renpy
           ./renpy.sh launcher distribute "../ddlcbase/" --package Mod
 
       # lint renpy
       - name: rpy lint
         run: |
-          cd renpy
+          cd /renpy
           ./renpy.sh "../ddlcbase/" lint | grep -E -v "^$|Could not find image \(monika [0-9][^[:space:]]+ corresponding to attributes on say statement\.|'monika [0-9][^[:space:]]+' is not an image\.|The image named 'monika [0-9][^[:space:]]+ was not declared\."

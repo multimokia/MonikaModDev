@@ -40,7 +40,7 @@ jobs:
       # download base mas
       - name: Copy files over
         run: |
-          cp -Rf Monika\ After\ Story/* ddlcbase/
+          cp -Rf Monika\ After\ Story/* /ddlcbase/
 
       # touch file for unstable so it doesn't raise exceptions for some things
       - name: exception skip for unstable

@@ -14,7 +14,8 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
-    container: "multimokia/ddlc-mod-base:latest"
+    container:
+      image: multimokia:ddlc-mod-base
 
     name: ci_build
 

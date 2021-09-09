@@ -16,7 +16,7 @@ jobs:
   # This workflow contains a single job called "build"
   build:
     container:
-      image: multimokia:ddlc-mod-base
+      image: multimokia/ddlc-mod-base:latest
 
     name: ci_build
 

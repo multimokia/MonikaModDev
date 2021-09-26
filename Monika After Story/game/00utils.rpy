@@ -8,26 +8,13 @@ python early in mas_logging:
     from logging import handlers as loghandlers
 
     #Consts
-    LOG_FORMAT = "[%(asctime)] [%(levelname)s]: %(message)s"
+    LOG_FORMAT = "[%(asctime)s] [%(levelname)s]: %(message)s"
     LOG_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
     LOG_PATH = os.path.join(renpy.config.basedir, "log")
 
     LOG_MAXSIZE_B = 5242880 #5 mb
 
-    LOG_HEADER = """
-{0}
-{1}
-{2}
-
-
-VERSION: {3}
-=========================================================
-""".format(
-    datetime.datetime.now().strftime("%a %b %d %H:%M:%S %Y"),
-    "{0} {1} | Build: {2}".format(platform.system(), platform.release(), platform.version()),
-    renpy.version(),
-    renpy.config.version
-)
+    LOG_HEADER = "\n\n{0}\n{1}\n{2}\n\nVERSION: {3}\n{4}"
 
     #Ensure log path exists
     if not os.path.exists(LOG_PATH):
@@ -39,21 +26,36 @@ VERSION: {3}
         """
         formatter = logging.Formatter(fmt=LOG_FORMAT, datefmt=LOG_DATE_FORMAT)
 
+        #NOTE: using `delay` causes weird issues where the filestream is nonexistent in renpy. Do not use it
         handler = loghandlers.RotatingFileHandler(
             filename=os.path.join(LOG_PATH, filename),
             mode="a",
             maxBytes=LOG_MAXSIZE_B,
-            encoding="utf-8",
-            #delay=True
+            encoding="utf-8"
         )
 
         log = logging.getLogger(name)
+
+        #Allow all severities to be logged
+        log.setLevel(logging.DEBUG)
         handler.setLevel(logging.DEBUG)
-        handler.setFormatter
+
+        #Add the handler so we can print log header info
         log.addHandler(handler)
 
-        #Write the file header
-        #log.
+        #Write as this has no formatting yet
+        log.info(
+            LOG_HEADER.format(
+            datetime.datetime.now().strftime("%a %b %d %H:%M:%S %Y"),
+            "{0} {1} - build: {2}".format(platform.system(), platform.release(), platform.version()),
+            renpy.version(),
+            renpy.config.version,
+            "=" * 50
+        ))
+
+        #Now apply formatting to all further uses
+        handler.setFormatter(formatter)
+
         return log
 
 python early in mas_utils:

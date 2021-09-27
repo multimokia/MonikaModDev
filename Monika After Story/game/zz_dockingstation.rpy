@@ -1577,7 +1577,7 @@ init 200 python in mas_dockstat:
         ASSUMES:
             blocksize - this is a constant in this store
         """
-        cr_log = store.mas_logging.init_log("mfgen", logpath)
+        cr_log = store.mas_logging.init_log(logpath)
 
         cr_log.info("\n\nCreating Monika in: {0}".format(dockstat.station))
 
@@ -1823,7 +1823,7 @@ init 200 python in mas_dockstat:
             [1]: either list of data or persistent object of data. Will be
                 None if no data or errors occured
         """
-        rd_log = store.mas_logging.init_log("mfread", rd_log_path)
+        rd_log = store.mas_logging.init_log(rd_log_path)
 
         rd_log.info("\n\nFinding Monika in: {0}".format(dockstat.station))
 

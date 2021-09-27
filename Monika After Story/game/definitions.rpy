@@ -4158,9 +4158,9 @@ init -995 python in mas_utils:
     from contextlib import contextmanager
 
     # LOG messges
-    _mas__failrm = "[ERROR] Failed remove: '{0}' | {1}\n"
-    _mas__failcp = "[ERROR] Failed copy: '{0}' -> '{1}' | {2}\n"
-    _mas__faildir = "[ERROR] Failed to check if dir: {0} | {1}\n"
+    _mas__failrm = "[ERROR] Failed remove: '{0}' | {1}"
+    _mas__failcp = "[ERROR] Failed copy: '{0}' -> '{1}' | {2}"
+    _mas__faildir = "[ERROR] Failed to check if dir: {0} | {1}"
 
     # bad text dict
     BAD_TEXT = {
@@ -4571,16 +4571,6 @@ init -995 python in mas_utils:
             return os.access(os.path.normcase(filepath), os.F_OK)
         except:
             return False
-
-    # unstable should never delete logs
-    if store.persistent._mas_unstable_mode:
-        mas_log = getMASLog("log/mas_log", append=True, flush=True)
-    else:
-        mas_log = getMASLog("log/mas_log")
-
-    mas_log_open = mas_log.open()
-    mas_log.raw_write = True
-    mas_log.write("VERSION: {0}\n".format(store.persistent.version_number))
 
     def weightedChoice(choice_weight_tuple_list):
         """

@@ -994,9 +994,9 @@ init -3 python in mas_piano_keys:
             if type(say) is not renpy.text.text.Text:
                 raise PianoException("say must be of type Text")
             if not store.mas_sprite_decoder.isValidSpritecode(express):
-                store.mas_utils.writelog("Given expression '{0}' is invalid.\n".format(express))
+                store.mas_utils.mas_log.error("Given expression '{0}' is invalid.".format(express))
             if not store.mas_sprite_decoder.isValidSpritecode(postexpress):
-                store.mas_utils.writelog("Given expression '{0}' is invalid.\n".format(postexpress))
+                store.mas_utils.mas_log.error("Given expression '{0}' is invalid.".format(postexpress))
 #            if (
 #                    ev_timeout is not None
 #                    and vis_timeout is not None

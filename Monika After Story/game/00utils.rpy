@@ -9,12 +9,17 @@ python early in mas_logging:
     from logging import handlers as loghandlers
 
     #Consts
-    LOG_FORMAT = "[%(asctime)s] [%(levelname)s]: %(message)s"
-    LOG_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
+    _MAS_LOG_FORMAT = logging.Formatter(
+        fmt="[%(asctime)s] [%(levelname)s]: %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S"
+    )
+
+    #We always log to renpy.config.basedir/log
     LOG_PATH = os.path.join(renpy.config.basedir, "log")
 
     LOG_MAXSIZE_B = 5242880 #5 mb
 
+    #Add the header to each log, including OS info + MAS version number
     LOG_HEADER = "\n\n{0}\n{1}\n{2}\n\nVERSION: {3}\n{4}"
 
     #Ensure log path exists
@@ -22,23 +27,24 @@ python early in mas_logging:
         os.makedirs(LOG_PATH)
 
     #Full logging info
-    def init_log(name, filename):
+    def init_log(name, append=True, formatter=_MAS_LOG_FORMAT):
         """
         Initializes a logger with a handler with the name and files given.
 
         IN:
-            name - name of the logger
-            filename - name of the file to write to.
+            name - name of the logger, this will be the same as the file, with the file appending '.txt'
+            append - Whether or not we're appending this log or clearing it on load
+                (Default: True)
+            formatter - custom logging.Formatter to be used. If None is provided, the default formatter in logging is used (no formatting)
+                (Default: _MAS_LOG_FORMAT. See const above)
 
         NOTE: ALL LOGS ARE IN renpy.config.basedir/log/
         All logs flush and rotate once they're 5 mb in size.
         """
-        formatter = logging.Formatter(fmt=LOG_FORMAT, datefmt=LOG_DATE_FORMAT)
-
         #NOTE: using `delay` causes weird issues where the filestream is nonexistent in renpy. Do not use it
         handler = loghandlers.RotatingFileHandler(
-            filename=os.path.join(LOG_PATH, filename),
-            mode="a",
+            filename=os.path.join(LOG_PATH, name + '.txt'),
+            mode="a" if append else "w",
             maxBytes=LOG_MAXSIZE_B,
             encoding="utf-8"
         )
@@ -62,8 +68,12 @@ python early in mas_logging:
             "=" * 50
         ))
 
-        #Now apply formatting to all further uses
-        handler.setFormatter(formatter)
+        if formatter is None:
+            handler.setFormatter(logging._defaultFormatter)
+
+        else:
+            #Now apply formatting to all further uses
+            handler.setFormatter(formatter)
 
         return log
 
@@ -78,7 +88,8 @@ python early in mas_utils:
     import traceback
     import functools
 
-    mas_log = store.mas_logging.init_log("mas_log", "mas_log.txt")
+    from store import mas_logging
+    mas_log = mas_logging.init_log("mas_log")
 
 
     def deprecated(use_instead=None, should_raise=False):
@@ -113,7 +124,7 @@ python early in mas_utils:
                 """
                 Wrapper around the deprecated function/class
                 """
-                msg = "[WARNING]: '{module}{name}' is deprecated.{use_instead_text}"
+                msg = "'{module}{name}' is deprecated.{use_instead_text}"
 
                 if hasattr(callable_, "__module__") and callable_.__module__:
                     module = callable_.__module__ + "."
@@ -139,8 +150,8 @@ python early in mas_utils:
                     raise DeprecationWarning(msg)
 
                 else:
-                    print(msg, file=sys.stderr)
-                    writelog(msg + "\n")
+                    print("[WARNING]: " + msg, file=sys.stderr)
+                    mas_log.warning(msg)
 
                 return callable_(*args, **kwargs)
 
@@ -289,7 +300,7 @@ python early in mas_utils:
         #if mas_log_open:
         #    mas_log.write(msg)
 
-    @deprecated(use_instead="mas_utils.mas_log.error")
+    @deprecated(use_instead="mas_utils.mas_log.critical")
     def wtf(msg):
         """
         Wow That Failed
@@ -298,14 +309,14 @@ python early in mas_utils:
         IN:
             msg - message to log
         """
-        writelog(msg)
+        mas_log.critical(msg)
 
-    @deprecated(use_instead="mas_utils.mas_log.exception")
+    @deprecated(use_instead="mas_utils.mas_log.debug(exc_info=True)")
     def writestack():
         """
         Prints current stack to log
         """
-        writelog("".join(traceback.format_stack()))
+        mas_log.debug("".join(traceback.format_stack()))
 
     #"No longer necessary as all logs have builtin rotation"
     @deprecated()
@@ -324,7 +335,7 @@ python early in mas_utils:
         try:
             filelist = os.listdir(logpath)
         except Exception as e:
-            writelog("[ERROR] " + str(e) + "\n")
+            mas_log.error(str(e))
             return
 
         # log rotation constants
@@ -388,7 +399,7 @@ python early in mas_utils:
             shutil.copyfile(oldpath, newpath)
             return True
         except Exception as e:
-            writelog(_mas__failcp.format(oldpath, newpath, str(e)))
+            mas_log.error(_mas__failcp.format(oldpath, newpath, str(e)))
         return False
 
 
@@ -402,7 +413,7 @@ python early in mas_utils:
             os.remove(f_path)
         except Exception as e:
             if log:
-                writelog("[exp] {0}\n".format(repr(e)))
+                mas_log.error("[exp] {0}".format(repr(e)))
 
     def trywrite(f_path, msg, log=False, mode="w"):
         """
@@ -424,7 +435,7 @@ python early in mas_utils:
             outfile.write(msg)
         except Exception as e:
             if log:
-                writelog("[exp] {0}\n".format(repr(e)))
+                mas_log.error("[exp] {0}".format(repr(e)))
         finally:
             if outfile is not None:
                 outfile.close()

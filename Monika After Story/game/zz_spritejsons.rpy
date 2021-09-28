@@ -402,9 +402,7 @@ init -21 python in mas_sprites_json:
     from store.mas_ev_data_ver import _verify_bool, _verify_str, \
         _verify_int, _verify_list, _verify_dict
 
-    log = mas_utils.getMASLog("log/spj")
-    log_open = log.open()
-    log.raw_write = True
+    log = store.mas_logging.init_log("spj", append=False, formatter=None)
 
     py_list = __builtin__.list
     py_dict = __builtin__.dict
@@ -460,15 +458,13 @@ init -21 python in mas_sprites_json:
 
     def writelog(msg):
         # new lines always added ourselves
-        if log_open:
-            log.write(msg)
+        log.info(msg)
 
 
     def writelogs(msgs):
         # writes multiple msges given list
-        if log_open:
-            for msg in msgs:
-                log.write(msg)
+        for msg in msgs:
+            log.info(msg)
 
         # clear msgs list
         msgs[:] = []
@@ -2154,7 +2150,7 @@ init 189 python in mas_sprites_json:
         giftname = None
         indent_lvl = 0
 
-        writelog("\n" + MSG_INFO.format(READING_FILE.format(filepath)))
+        writelog(MSG_INFO.format(READING_FILE.format(filepath)))
 
         # can we read file
         with open(filepath, "r") as jsonfile:
@@ -2513,7 +2509,7 @@ init 189 python in mas_sprites_json:
         """
         Verifies all hair items that we encountered
         """
-        writelog("\n" + MSG_INFO.format(HM_VER_ALL))
+        writelog(MSG_INFO.format(HM_VER_ALL))
 
         # start with keys
         for hkey in hm_key_delayed_veri:
@@ -2582,7 +2578,7 @@ init 189 python in mas_sprites_json:
         Processes giftnames that were loaded, adding/removing them from
         certain dicts.
         """
-        writelog("\n" + MSG_INFO.format(GR_LOADING))
+        writelog(MSG_INFO.format(GR_LOADING))
 
         frs_gifts = store.persistent._mas_filereacts_sprite_gifts
         msj_gifts = store.persistent._mas_sprites_json_gifted_sprites

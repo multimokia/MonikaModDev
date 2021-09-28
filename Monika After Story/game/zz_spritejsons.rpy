@@ -402,7 +402,7 @@ init -21 python in mas_sprites_json:
     from store.mas_ev_data_ver import _verify_bool, _verify_str, \
         _verify_int, _verify_list, _verify_dict
 
-    log = store.mas_logging.init_log("spj", formatter=None)
+    log = store.mas_logging.init_log("spj", append=False, formatter=None)
 
     py_list = __builtin__.list
     py_dict = __builtin__.dict

@@ -1351,7 +1351,7 @@ label mas_chess_save_migration:
                         try:
                             os.remove(os.path.normcase(game_path))
                         except:
-                            mas_utils.mas_log.error("Failed to remove game at: {0}\n".format(game_path))
+                            mas_utils.mas_log.error("Failed to remove game at: {0}".format(game_path))
 
         # we have one game, so return the game
         elif game_count == 1:
@@ -1862,7 +1862,7 @@ init python:
             mas_chess.CHESS_SAVE_PATH = file_path
 
         except:
-            mas_utils.mas_log.error("Chess game folder could not be created '{0}'\n".format(file_path))
+            mas_utils.mas_log.error("Chess game folder could not be created '{0}'".format(file_path))
 
 
     #START: DISPLAYABLES AND RELATED CLASSES

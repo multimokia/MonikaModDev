@@ -27,12 +27,14 @@ python early in mas_logging:
         os.makedirs(LOG_PATH)
 
     #Full logging info
-    def init_log(name, formatter=_MAS_LOG_FORMAT):
+    def init_log(name, append=True, formatter=_MAS_LOG_FORMAT):
         """
         Initializes a logger with a handler with the name and files given.
 
         IN:
             name - name of the logger, this will be the same as the file, with the file appending '.txt'
+            append - Whether or not we're appending this log or clearing it on load
+                (Default: True)
             formatter - custom logging.Formatter to be used. If None is provided, the default formatter in logging is used (no formatting)
                 (Default: _MAS_LOG_FORMAT. See const above)
 
@@ -42,7 +44,7 @@ python early in mas_logging:
         #NOTE: using `delay` causes weird issues where the filestream is nonexistent in renpy. Do not use it
         handler = loghandlers.RotatingFileHandler(
             filename=os.path.join(LOG_PATH, name + '.txt'),
-            mode="a",
+            mode="a" if append else "w",
             maxBytes=LOG_MAXSIZE_B,
             encoding="utf-8"
         )

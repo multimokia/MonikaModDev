@@ -1018,7 +1018,7 @@ init -880 python:
             a eval check.
             NOTE: we do not check callable for correctness
         """
-        ERR_COND = "[ERROR] delayed action has bad conditional '{0}' | {1}\n"
+        ERR_COND = "delayed action has bad conditional '{0}' | {1}"
 
 
         def __init__(self,

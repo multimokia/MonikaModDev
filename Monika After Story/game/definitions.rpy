@@ -4,8 +4,6 @@ define config.developer = False #This is the flag for Developer tools
 # define persistent.steam = "steamapps" in config.basedir.lower()
 
 python early:
-    import singleton
-    me = singleton.SingleInstance()
     # define the zorders
     MAS_MONIKA_Z = 10
     MAS_BACKGROUND_Z = 3

@@ -1,3 +1,7 @@
+python early:
+    import singleton
+    me = singleton.SingleInstance()
+
 python early in mas_logging:
     import datetime
     import logging
@@ -22,6 +26,24 @@ python early in mas_logging:
     #Add the header to each log, including OS info + MAS version number
     LOG_HEADER = "\n\n{0}\n{1}\n{2}\n\nVERSION: {3}\n{4}"
 
+    #Unformatted logs use these consts (spj/pnm)
+    MSG_INFO = "[INFO]: {0}"
+    MSG_WARN = "[WARNING]: {0}"
+    MSG_ERR = "[ERROR]: {0}"
+
+    MSG_INFO_ID = "    " + MSG_INFO
+    MSG_WARN_ID = "    " + MSG_WARN
+    MSG_ERR_ID = "    " + MSG_ERR
+
+    #Load strs for files
+    LOAD_TRY = "Attempting to load '{0}'..."
+    LOAD_SUCC = "'{0}' loaded successfully."
+    LOAD_FAILED = "Load failed."
+
+    JSON_LOAD_FAILED = "Failed to load json at '{0}'."
+    FILE_LOAD_FAILED = "Failed to load file at '{0}'. | {1}"
+    NAME_BAD = "name must be unique."
+
     #Ensure log path exists
     if not os.path.exists(LOG_PATH):
         os.makedirs(LOG_PATH)
@@ -42,12 +64,17 @@ python early in mas_logging:
         All logs flush and rotate once they're 5 mb in size.
         """
         #NOTE: using `delay` causes weird issues where the filestream is nonexistent in renpy. Do not use it
-        handler = loghandlers.RotatingFileHandler(
-            filename=os.path.join(LOG_PATH, name + '.txt'),
-            mode="a" if append else "w",
-            maxBytes=LOG_MAXSIZE_B,
-            encoding="utf-8"
-        )
+
+        _kwargs = {
+            "filename": os.path.join(LOG_PATH, name + '.txt'),
+            "mode": ("a" if append else "w"),
+            "encoding": "utf-8"
+        }
+
+        if append:
+            handler = loghandlers.RotatingFileHandler(maxBytes=LOG_MAXSIZE_B, **_kwargs)
+        else:
+            handler = logging.FileHandler(**_kwargs)
 
         log = logging.getLogger(name)
 

@@ -381,18 +381,10 @@ init -3 python in mas_piano_keys:
     import store
     import pygame # we need this for keymaps
     import os
-    log = store.mas_logging.init_log(
-        "pnm",
-        append=False,
-        formatter=store.mas_logging.logging.Formatter(fmt="[%(levelname)s]: %(message)s") #We don't store time here
-    )
+    log = store.mas_utils.getMASLog("log/pnm")
 
     from store.mas_utils import tryparseint, tryparsefloat
     import store.mas_ui as mas_ui
-
-    from store.mas_logging import JSON_LOAD_FAILED, FILE_LOAD_FAILED, \
-        LOAD_TRY, LOAD_SUCC, LOAD_FAILED, \
-        NAME_BAD
 
     # directory setup
     pnml_basedir = os.path.normcase(
@@ -429,13 +421,30 @@ init -3 python in mas_piano_keys:
 
     NOTES_BAD = "pnm list cannot be empty."
     VERSES_BAD = "verse list cannot be empty."
+    NAME_BAD = "name must be unique."
     LABEL_BAD = "label '{0}' does not exist."
     WAIT_BAD = "wait time '{0}' is invalid."
     L_VERSE_BAD = "verse '{0}' out of bounds."
 
+    LOAD_TRY = "Attempting to load '{0}'..."
+    LOAD_SUCC = "'{0}' loaded successfully."
+    LOAD_FAILED = "Load failed."
+
     PNM_LOAD_TRY = "Loading PNM '{0}'..."
     PNM_LOAD_SUCC = "PNM '{0}' loaded successfully!"
     PNM_LOAD_FAILED = "PNM '{0}' load failed."
+
+    JSON_LOAD_FAILED = "Failed to load json at '{0}'."
+    FILE_LOAD_FAILED = "Failed to load file at '{0}'. | {1}\n"
+
+
+    MSG_INFO = "[info]: {0}\n"
+    MSG_WARN = "[Warning!]: {0}\n"
+    MSG_ERR = "[!ERROR!]: {0}\n"
+
+    MSG_INFO_ID = "    [info]: {0}\n"
+    MSG_WARN_ID = "    [Warning!]: {0}\n"
+    MSG_ERR_ID = "    [!ERROR!]: {0}\n"
 
     # piano note match list database
     pnml_db = dict()
@@ -719,7 +728,7 @@ init -3 python in mas_piano_keys:
         return real_note_list
 
 
-    def _labelCheck(key, _params, jobj):
+    def _labelCheck(key, _params, jobj, islogopen):
         """
         specialized json label checking function
         NOTE: only use this for optional params
@@ -728,6 +737,7 @@ init -3 python in mas_piano_keys:
             key - key of label to check
             _params - params dict, also using key
             jobj - json object, also using key
+            islogopen - True if log is open, false othrewise
         """
         if key not in jobj:
             return
@@ -735,13 +745,14 @@ init -3 python in mas_piano_keys:
         # otherwise
         _label = jobj.pop(key)
         if not renpy.has_label(_label):
-            log.warning(LABEL_BAD.format(_label))
+            if islogopen:
+                log.write(MSG_WARN_ID.format(LABEL_BAD.format(_label)))
             return
 
         _params[key] = _label
 
 
-    def _intCheck_nl(key, _params, jobj, warn_msg):
+    def _intCheck_nl(key, _params, jobj, warn_msg, islogopen):
         """
         Specialized json int checking function
         NOTE: only use this for optinal params
@@ -752,11 +763,12 @@ init -3 python in mas_piano_keys:
             _params - params dict, also using key
             jobj - json object, also using key
             warn_msg - warning message
+            islogopen - True if log is open, otherwise false
         """
         _warns = list()
         _intCheck(key, _params, _warns, jobj, warn_msg)
-        if len(_warns) > 0:
-            log.warning(_warns[0])
+        if len(_warns) > 0 and islogopen:
+            log.write(MSG_WARN_ID.format(_warns[0]))
 
 
     def _noteCheck(key, _params, _warns, jobj, warn_msg):
@@ -982,9 +994,9 @@ init -3 python in mas_piano_keys:
             if type(say) is not renpy.text.text.Text:
                 raise PianoException("say must be of type Text")
             if not store.mas_sprite_decoder.isValidSpritecode(express):
-                store.mas_utils.mas_log.error("Given expression '{0}' is invalid.".format(express))
+                store.mas_utils.writelog("Given expression '{0}' is invalid.\n".format(express))
             if not store.mas_sprite_decoder.isValidSpritecode(postexpress):
-                store.mas_utils.mas_log.error("Given expression '{0}' is invalid.".format(postexpress))
+                store.mas_utils.writelog("Given expression '{0}' is invalid.\n".format(postexpress))
 #            if (
 #                    ev_timeout is not None
 #                    and vis_timeout is not None
@@ -1309,11 +1321,15 @@ init -3 python in mas_piano_keys:
                 PianoNoteMatchList associated with given JSON object, or
                 None if JSON object is missing required information
             """
+            islogopen = log.open()
+            log.raw_write = True
+
             # inital check to make sure the required items are in
             for required in PianoNoteMatchList.REQ_ARG:
                 if required not in jobj:
-                    log.error(MISS_KEY.format(required))
-                    log.error(LOAD_FAILED)
+                    if islogopen:
+                        log.write(MSG_ERR.format(MISS_KEY.format(required)))
+                        log.write(MSG_ERR.format(LOAD_FAILED))
                     return None
 
             # setup params
@@ -1321,18 +1337,21 @@ init -3 python in mas_piano_keys:
 
             # name first since we use it for situational awareness
             _name = jobj.pop("name")
-            log.info(LOAD_TRY.format(_name))
+            if islogopen:
+                log.write(MSG_INFO.format(LOAD_TRY.format(_name)))
 
             if len(_name) <= 0:
                 # name has to be something
-                log.error("    " + NAME_BAD.format(_name))
-                log.error(LOAD_FAILED)
+                if islogopen:
+                    log.write(MSG_ERR_ID.format(NAME_BAD.format(_name)))
+                    log.write(MSG_ERR.format(LOAD_FAILED))
                 return None
 
             if _name in pnml_bk_db:
                 # name must be unique
-                log.error("    " + NAME_BAD.format(_name))
-                log.error(LOAD_FAILED)
+                if islogopen:
+                    log.write(MSG_ERR_ID.format(NAME_BAD.format(_name)))
+                    log.write(MSG_ERR.format(LOAD_FAILED))
                 return None
 
             _params["name"] = _name
@@ -1341,56 +1360,69 @@ init -3 python in mas_piano_keys:
             __pnm_list = jobj.pop("pnm_list")
 
             if len(__pnm_list) <= 0:
-                log.error("    " + NOTES_BAD)
-                log.error(LOAD_FAILED)
+                if islogopen:
+                    log.write(MSG_ERR_ID.format(NOTES_BAD))
+                    log.write(MSG_ERR.format(LOAD_FAILED))
                 return None
 
             _pnm_list = list()
             index = 0
             for _pnm in __pnm_list:
-                log.info("    " + PNM_LOAD_TRY.format(index))
+                if islogopen:
+                    log.write(MSG_INFO_ID.format(PNM_LOAD_TRY.format(index)))
 
                 real_pnm, _msg = PianoNoteMatch.fromJSON(_pnm)
 
                 if real_pnm is None:
                     # failed to parse notematch
-                    log.error("    " + _msg)
-                    log.error("    " + PNM_LOAD_FAILED.format(index))
-                    log.error(LOAD_FAILED)
+                    if islogopen:
+                        log.write(MSG_ERR_ID.format(_msg))
+                        log.write(
+                            MSG_ERR_ID.format(PNM_LOAD_FAILED.format(index))
+                        )
+                        log.write(MSG_ERR.format(LOAD_FAILED))
                     return None
 
                 # add the pnm
                 _pnm_list.append(real_pnm)
 
                 # log warnings
-                for _warn in _msg:
-                    log.warn("    " + _warn)
+                if islogopen:
+                    for _warn in _msg:
+                        log.write(MSG_WARN_ID.format(_warn))
 
                 # verse check
                 if real_pnm.verse < 0 or real_pnm.verse >= len(_pnm_list):
-                    log.error("    " + L_VERSE_BAD.format(real_pnm.verse))
-                    log.error("    " + PNM_LOAD_FAILED.format(index))
-                    log.error(LOAD_FAILED)
+                    if islogopen:
+                        log.write(MSG_ERR_ID.format(
+                            L_VERSE_BAD.format(real_pnm.verse)
+                        ))
+                        log.write(
+                            MSG_ERR_ID.format(PNM_LOAD_FAILED.format(index))
+                        )
+                        log.write(MSG_ERR.format(LOAD_FAILED))
                     return None
 
                 # otherwise good pnm
-                log.info("    " + PNM_LOAD_SUCC.format(index))
+                if islogopen:
+                    log.write(MSG_INFO_ID.format(PNM_LOAD_SUCC.format(index)))
                 index += 1
-
             _params["pnm_list"] = _pnm_list
 
             # now verses
             _verse_list = jobj.pop("verse_list")
 
             if len(_verse_list) <= 0:
-                log.error("    " + VERSES_BAD)
-                log.error(LOAD_FAILED)
+                if islogopen:
+                    log.write(MSG_ERR_ID.format(VERSES_BAD))
+                    log.write(MSG_ERR.format(LOAD_FAILED))
                 return None
 
             for _verse in _verse_list:
                 if _verse < 0 or _verse >= len(_pnm_list):
-                    log.error("    " + L_VERSE_BAD.format(_verse))
-                    log.error(LOAD_FAILED)
+                    if islogopen:
+                        log.write(MSG_ERR_ID.format(L_VERSE_BAD.format(_verse)))
+                        log.write(MSG_ERR.format(LOAD_FAILED))
                     return None
 
             # otherwise good verses
@@ -1403,24 +1435,25 @@ init -3 python in mas_piano_keys:
             _params["prac_label"] = "mas_piano_def_prac"
 
             # optional params
-            _labelCheck("win_label", _params, jobj)
-            _labelCheck("fc_label", _params, jobj)
-            _labelCheck("fail_label", _params, jobj)
-            _labelCheck("prac_label", _params, jobj)
-            _labelCheck("launch_label", _params, jobj)
-            _intCheck_nl("end_wait", _params, jobj, WAIT_BAD)
+            _labelCheck("win_label", _params, jobj, islogopen)
+            _labelCheck("fc_label", _params, jobj, islogopen)
+            _labelCheck("fail_label", _params, jobj, islogopen)
+            _labelCheck("prac_label", _params, jobj, islogopen)
+            _labelCheck("launch_label", _params, jobj, islogopen)
+            _intCheck_nl("end_wait", _params, jobj, WAIT_BAD, islogopen)
 
             # ignore comments
             if "_comment" in jobj:
                 jobj.pop("_comment")
 
             # warn about extras
-            if len(jobj) > 0:
+            if len(jobj) > 0 and islogopen:
                 for extra in jobj:
-                    log.warning("    " + EXTRA_BAD.format(extra))
+                    log.write(MSG_WARN_ID.format(EXTRA_BAD.format(extra)))
 
             # success!
-            log.info(LOAD_SUCC.format(_name))
+            if islogopen:
+                log.write(MSG_INFO.format(LOAD_SUCC.format(_name)))
             return PianoNoteMatchList(**_params)
 
 
@@ -1441,14 +1474,20 @@ init 790 python in mas_piano_keys:
             add_main - True means we should add this to the main pnml db too
                 (Default: False)
         """
+        islogopen = log.open()
+
         # can we read file?
         with open(filepath, "r") as jsonfile:
+
             # load JSON
             jobj = json.load(jsonfile)
 
         # is file a JSON?
         if jobj is None:
-            log.error(JSON_LOAD_FAILED.format(filepath))
+            if islogopen:
+                log.write(
+                    MSG_ERR.format(JSON_LOAD_FAILED.format(filepath))
+                )
             return
 
         # is JSON a PianoNoteMatchList?
@@ -1488,7 +1527,11 @@ init 790 python in mas_piano_keys:
             try:
                 addSong(j_path, True)
             except Exception as e:
-                log.error(FILE_LOAD_FAILED.format(j_path, repr(e)))
+                log.write(
+                    MSG_ERR.format(
+                        FILE_LOAD_FAILED.format(j_path, repr(e))
+                    )
+                )
 
 
     def addStockSongs():
@@ -1506,7 +1549,7 @@ init 790 python in mas_piano_keys:
             try:
                 addSong(song_path)
             except:
-                log.error(FILE_LOAD_FAILED.format(song_path, ""))
+                log.write(MSG_ERR.format(FILE_LOAD_FAILED.format(song_path, "")))
 
 
 ### END =======================================================================

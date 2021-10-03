@@ -1912,8 +1912,8 @@ init 20 python:
                 mas_apology_reason = reason
             return
         elif mas_getEV(ev_label) is None:
-            store.mas_utils.mas_log.error(
-                "[ERROR]: ev_label does not exist: {0}".format(repr(ev_label))
+            store.mas_utils.writelog(
+                "[ERROR]: ev_label does not exist: {0}\n".format(repr(ev_label))
             )
             return
 

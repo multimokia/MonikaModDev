@@ -794,8 +794,10 @@ init -99 python in mas_sprites:
         """
         # check init
         if __ignore_filters:
-            store.mas_utils.mas_log.warning(
-                "Cannot add filter '{0}' after init -1".format(flt_enum)
+            mas_utils.writelog(
+                "[Warning!]: Cannot add filter '{0}' after init -1\n".format(
+                    flt_enum
+                )
             )
             return
 
@@ -806,8 +808,11 @@ init -99 python in mas_sprites:
         # check base if given
         if base is not None:
             if base not in FILTERS:
-                store.mas_utils.mas_log.warning(
-                    "Cannot add filter '{0}' with base '{1}', base flt does not exist".format(flt_enum, base)
+                mas_utils.writelog(
+                    (
+                        "[Warning!]: Cannot add filter '{0}' with base '{1}', "
+                        "base flt not exist\n"
+                    ).format(flt_enum, base)
                 )
                 return
 
@@ -888,8 +893,11 @@ init -99 python in mas_sprites:
             eval(flt_enum, fake_context)
             return True
         except:
-            store.mas_utils.mas_log.warning(
-                "Cannot add filter '{0}'. Name is not python syntax friendly".format(flt_enum)
+            mas_utils.writelog(
+                (
+                    "[Warning!]: Cannot add filter '{0}'. Name is not "
+                    "python syntax friendly\n"
+                ).format(flt_enum)
             )
 
         return False

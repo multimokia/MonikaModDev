@@ -1,0 +1,1 @@
+from contracts.renpy.Config import Config
